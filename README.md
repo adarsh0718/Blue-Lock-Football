@@ -11,9 +11,19 @@
 **A retro-styled, feature-rich 2D football game built with Python & Pygame.**  
 Inspired by the raw intensity of *Blue Lock* — a vintage 5v5 experience dripping in 1970s football aesthetics.
 
-[🎮 Getting Started](#-installation) · [🕹️ Controls](#%EF%B8%8F-controls) · [🌦️ Weather Modes](#%EF%B8%8F-weather-system) · [🧠 AI System](#-ai-system) · [📂 Project Structure](#-project-structure)
+[🎮 Getting Started](#-installation) · [🕹️ Controls](#%EF%B8%8F-controls) · [🌦️ Weather Modes](#%EF%B8%8F-weather-system) · [🧠 AI System](#-ai-system) · [📂 Project Structure](#-project-structure) · [🤖 Chatbot Assistant](#-chatbot-web-assistant)
 
 </div>
+
+---
+
+## 🤖 Chatbot Web Assistant (Live App)
+
+An interactive AI-powered search chatbot is deployed and available to help answer questions about the code, game mechanics, and physics equations of this project.
+
+👉 **[Launch Active Live App](https://sraadaly-966730172656.asia-southeast1.run.app/)**
+
+For full details, architecture, and configuration options, see the dedicated [CHATBOT.md](file:///d:/Blue-Lock-Football/CHATBOT.md) documentation.
 
 ---
 
