@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAP-CHAT-BOT — Smart AI Search Assistant</title>
+    <meta name="description" content="SAP-CHAT-BOT: AI-powered smart assistant with web search, codebase analysis, and Gemini AI integration.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;400;500;700&family=Outfit:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Animated background particles -->
+    <div class="bg-particles">
+        <div class="particle p1"></div>
+        <div class="particle p2"></div>
+        <div class="particle p3"></div>
+        <div class="particle p4"></div>
+        <div class="particle p5"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container">
+                    <div class="logo-icon-wrap">
+                        <span class="logo-icon">✦</span>
+                    </div>
+                    <div>
+                        <h1 class="logo-text">SAP<span>-CHAT</span>-BOT</h1>
+                        <p class="subtitle">Smart AI Search Assistant</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Chat Button -->
+            <button id="new-chat-btn" class="new-chat-btn">
+                <span>➕</span> New Chat
+            </button>
+
+            <!-- Saved Conversations (ChatGPT Style) -->
+            <div class="sidebar-section">
+                <h3>CONVERSATIONS</h3>
+                <div id="chat-threads-container" class="chat-threads-container">
+                    <div id="chat-threads-list" class="chat-threads-list">
+                        <div class="no-threads">No recent chats</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>SEARCH MODE</h3>
+                <div class="mode-toggles">
+                    <button class="mode-btn active" data-mode="all" id="mode-all-btn">
+                        <span class="btn-icon">🔍</span>
+                        <div class="btn-details">
+                            <span class="btn-title">Deep Search</span>
+                            <span class="btn-desc">Web + Local Codebase</span>
+                        </div>
+                    </button>
+                    <button class="mode-btn" data-mode="web" id="mode-web-btn">
+                        <span class="btn-icon">🌐</span>
+                        <div class="btn-details">
+                            <span class="btn-title">Web Search</span>
+                            <span class="btn-desc">Search the Internet</span>
+                        </div>
+                    </button>
+                    <button class="mode-btn" data-mode="codebase" id="mode-codebase-btn">
+                        <span class="btn-icon">📂</span>
+                        <div class="btn-details">
+                            <span class="btn-title">Codebase Search</span>
+                            <span class="btn-desc">Search Python Files</span>
+                        </div>
+                    </button>
+                    <button class="mode-btn" data-mode="ai" id="mode-ai-btn">
+                        <span class="btn-icon">🤖</span>
+                        <div class="btn-details">
+                            <span class="btn-title">AI Chat Mode</span>
+                            <span class="btn-desc">Gemini Conversational AI</span>
+                        </div>
+                    </button>
+                    <button class="mode-btn" data-mode="recruitment" id="mode-recruitment-btn">
+                        <span class="btn-icon">💼</span>
+                        <div class="btn-details">
+                            <span class="btn-title">Recruitment Assistant</span>
+                            <span class="btn-desc">Resume, Job & Interview Help</span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>CODEBASE INDEX</h3>
+                <div id="codebase-files" class="codebase-files-list">
+                    <div class="loading-small">Loading files...</div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>QUICK PROMPTS</h3>
+                <div class="suggestions">
+                    <button class="suggest-btn" data-query="Create a resume outline for a Python developer">
+                        💼 Resume Outline (Python)
+                    </button>
+                    <button class="suggest-btn" data-query="Mock interview questions for an AI engineer">
+                        💼 Mock Interview (AI)
+                    </button>
+                    <button class="suggest-btn" data-query="Write a professional cover letter template">
+                        💼 Cover Letter Template
+                    </button>
+                    <button class="suggest-btn" data-query="How does goalkeeper AI work in ai.py?">
+                        ✨ Goalkeeper AI Logic
+                    </button>
+                    <button class="suggest-btn" data-query="What physics are applied to the ball?">
+                        ✨ Ball Physics Formula
+                    </button>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button id="clear-chat-btn" class="footer-btn">
+                    <span>🗑️</span> Clear Chat History
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-area">
+            <!-- Header -->
+            <header class="chat-header">
+                <div class="header-left">
+                    <div class="connection-status">
+                        <span class="status-dot online"></span>
+                        <span class="status-text">Server Connected</span>
+                    </div>
+                </div>
+                <div class="header-center">
+                    <h2 class="active-mode-title" id="active-mode-label">✦ Deep Search Console</h2>
+                </div>
+                <div class="header-right">
+                    <button id="settings-toggle-btn" class="icon-btn" title="API Settings">
+                        ⚙️
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Messages Window -->
+            <div id="chat-messages" class="chat-messages-container">
+                <!-- Welcome Card -->
+                <div class="message system-msg welcome-card">
+                    <div class="welcome-header">
+                        <div class="welcome-badge">AI ASSISTANT</div>
+                        <h2>Welcome to SAP-CHAT-BOT ✦</h2>
+                        <p>Your intelligent search companion. Ask anything — I search the web, analyze code files, and hold smart AI conversations powered by Google Gemini.</p>
+                    </div>
+                    <div class="welcome-grid">
+                        <div class="grid-card">
+                            <span class="grid-icon">🌐</span>
+                            <h4>Web Search</h4>
+                            <p>Real-time web summaries via Mojeek search engine parsing.</p>
+                        </div>
+                        <div class="grid-card">
+                            <span class="grid-icon">🐍</span>
+                            <h4>Code Analysis</h4>
+                            <p>Scans Python project files for exact keyword and regex matches.</p>
+                        </div>
+                        <div class="grid-card">
+                            <span class="grid-icon">💎</span>
+                            <h4>Gemini AI</h4>
+                            <p>Add your API key to unlock full conversational AI responses.</p>
+                        </div>
+                    </div>
+                    <div class="api-key-notice-wrapper">
+                        <p class="api-key-notice" id="key-notice">
+                            ℹ️ <em>No Gemini API Key detected. Running in Local Synthesis mode. Click <strong>⚙️</strong> above to add your key.</em>
+                        </p>
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="get-api-btn">
+                            ✦ Get Free Gemini API Key →
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Footer -->
+            <footer class="chat-footer">
+                <form id="chat-form" class="input-form">
+                    <div class="input-wrapper">
+                        <span class="input-prefix-icon">✦</span>
+                        <input
+                            type="text"
+                            id="user-input"
+                            placeholder="Ask anything — web search, code analysis, or AI chat..."
+                            autocomplete="off"
+                            required
+                        >
+                        <button type="submit" class="send-btn" id="send-btn">
+                            <span class="send-icon">↑</span>
+                        </button>
+                    </div>
+                    <p class="input-hint">SAP-CHAT-BOT · Smart AI Search Assistant · Powered by Gemini</p>
+                </form>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <div class="modal-badge">CONFIGURATION</div>
+                    <h2>API Settings</h2>
+                </div>
+                <button id="close-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="api-key-promo">
+                    <span class="promo-icon">✦</span>
+                    <div>
+                        <strong>Get a free Gemini API Key</strong>
+                        <p>Visit Google AI Studio to generate your free API key in under 60 seconds.</p>
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" class="promo-link">Open Google AI Studio →</a>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="gemini-api-key">Google Gemini API Key:</label>
+                    <div class="password-input-wrapper">
+                        <input
+                            type="password"
+                            id="gemini-api-key"
+                            placeholder="AIzaSy..."
+                        >
+                        <button type="button" id="toggle-key-visibility" class="view-key-btn">👁️</button>
+                    </div>
+                    <small class="help-text">Stored only in your browser's local storage. Never sent anywhere except Google's API.</small>
+                    <div class="validate-wrapper" style="margin-top: 10px; display: flex; align-items: center; gap: 12px;">
+                        <button type="button" id="validate-key-btn" class="validate-key-btn">🧪 Test & Validate Key</button>
+                        <span id="validation-status" class="validation-status"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="gemini-model">Preferred Gemini Model:</label>
+                    <select id="gemini-model">
+                        <option value="gemini-1.5-flash" selected>Gemini 1.5 Flash — Highly Stable & High Quota</option>
+                        <option value="gemini-2.0-flash">Gemini 2.0 Flash — Latest & Fast</option>
+                        <option value="gemini-2.0-flash-thinking-exp">Gemini 2.0 Flash Thinking — Deep Reasoning</option>
+                        <option value="gemini-1.5-pro">Gemini 1.5 Pro — Deep Analytical</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="search-results-count">Max Web Search Results:</label>
+                    <div class="range-wrapper">
+                        <input type="range" id="search-results-count" min="1" max="10" value="5">
+                        <span id="results-count-badge">5</span>
+                    </div>
+                </div>
+                <div class="settings-status" id="settings-save-status">Settings loaded from local storage.</div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-settings-btn" class="save-btn">Save Configurations ✦</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
