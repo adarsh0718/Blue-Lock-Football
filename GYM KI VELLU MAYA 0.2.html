@@ -1,0 +1,1836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitCoach AI — Your Training Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Premium white gym theme — variable names preserved for JS-generated inline styles */
+    --graphite:#FFFFFF;        /* body / input surface */
+    --panel:#FFFFFF;           /* card surface */
+    --panel-raised:#F8F9FA;    /* raised/alternate surface */
+    --chalk:#222222;           /* primary text */
+    --muted:#666666;           /* secondary text */
+    --effort:#D62828;          /* accent red */
+    --effort-dim:#FBE6E6;      /* light accent tint */
+    --recovery:#2E7D32;        /* success green (status/positive) */
+    --gold:#B71C1C;            /* deep accent highlight (hover red) */
+    --hairline:#E8E8E8;        /* borders */
+    --radius:12px;
+    --shadow-soft:0 8px 24px rgba(20,20,20,0.06);
+    --shadow-lift:0 18px 40px rgba(20,20,20,0.12);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--graphite);
+    color:var(--chalk);
+    font-family:'Inter',sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4,.display{
+    font-family:'Oswald',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    font-weight:600;
+    margin:0;
+  }
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  a{color:inherit;}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 24px;}
+  ::selection{background:var(--effort);color:#fff;}
+  :focus-visible{outline:2px solid var(--effort);outline-offset:2px;}
+
+  /* subtle scroll-reveal, respects reduced motion via the query at the bottom */
+  section, header.hero{
+    animation:fadeUp .7s ease both;
+  }
+  @keyframes fadeUp{
+    from{opacity:0;transform:translateY(14px);}
+    to{opacity:1;transform:translateY(0);}
+  }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,255,255,0.96);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--hairline);
+    box-shadow:0 2px 16px rgba(20,20,20,0.04);
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:76px;}
+  .logo{font-size:20px;letter-spacing:0.06em;display:flex;align-items:center;gap:8px;color:var(--chalk);}
+  .logo .dot{width:8px;height:8px;background:var(--effort);border-radius:50%;display:inline-block;}
+  nav .links{display:flex;gap:32px;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;}
+  nav .links a{text-decoration:none;color:var(--muted);transition:color .2s ease;position:relative;padding-bottom:4px;}
+  nav .links a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:2px;background:var(--effort);transition:right .25s ease;}
+  nav .links a:hover{color:var(--chalk);}
+  nav .links a:hover::after{right:0;}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    background:linear-gradient(135deg,#E63946 0%,var(--effort) 55%,var(--gold) 100%);
+    color:#fff;border:none;
+    font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.05em;
+    font-size:14px;font-weight:600;padding:14px 28px;border-radius:var(--radius);
+    cursor:pointer;transition:transform .2s ease, box-shadow .2s ease;
+    box-shadow:0 8px 20px rgba(214,40,40,0.28);
+  }
+  .btn:hover{transform:translateY(-3px);box-shadow:0 14px 28px rgba(214,40,40,0.36);}
+  .btn.ghost{background:#fff;border:1.5px solid var(--effort);color:var(--effort);box-shadow:none;}
+  .btn.ghost:hover{background:var(--effort);color:#fff;transform:translateY(-3px);box-shadow:0 14px 28px rgba(214,40,40,0.28);}
+  .btn.small{padding:10px 18px;font-size:12px;}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+
+  /* ---------- HERO ---------- */
+  header.hero{
+    padding:120px 0 96px;
+    border-bottom:1px solid var(--hairline);
+    position:relative;
+    background:
+      linear-gradient(rgba(255,255,255,0.88),rgba(255,255,255,0.93)),
+      linear-gradient(135deg,rgba(214,40,40,0.18),rgba(0,0,0,0.05)),
+      url("https://images.unsplash.com/photo-1544033527-b192daee1f5b?fm=jpg&q=80&w=1600&auto=format&fit=crop&sat=-100") center/cover no-repeat;
+  }
+  .hero .wrap{display:grid;grid-template-columns:1.1fr 0.9fr;gap:56px;align-items:center;position:relative;z-index:1;}
+  .eyebrow{color:var(--effort);font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:18px;display:block;}
+  h1.headline{font-size:58px;line-height:1.05;margin-bottom:24px;color:var(--chalk);}
+  h1.headline .accent{color:var(--effort);}
+  .hero p.sub{color:var(--muted);font-size:17px;max-width:46ch;margin-bottom:36px;}
+  .hero-actions{display:flex;gap:14px;flex-wrap:wrap;}
+
+  /* signature: training card mock */
+  .card-mock{
+    background:var(--panel);border:1px solid var(--hairline);border-radius:18px;
+    padding:0;overflow:hidden;box-shadow:var(--shadow-lift);
+    transition:transform .3s ease, box-shadow .3s ease;
+  }
+  .card-mock:hover{transform:translateY(-4px);box-shadow:0 26px 48px rgba(20,20,20,0.16);}
+  .card-mock .strip{background:linear-gradient(90deg,var(--effort),var(--gold));height:6px;}
+  .card-mock .body{padding:30px 30px 26px;}
+  .card-mock .row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px dashed var(--hairline);}
+  .card-mock .row:last-child{border-bottom:none;}
+  .card-mock .label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;}
+  .card-mock .val{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500;color:var(--chalk);}
+  .card-mock .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;}
+  .card-mock .id{color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px;}
+  .card-mock h3{font-size:15px;color:var(--gold);}
+
+  /* ---------- SECTION GENERIC ---------- */
+  section{padding:88px 0;position:relative;}
+  section.alt{
+    background-color:#F8F9FA;
+    border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='%23222222' stroke-width='2' opacity='0.05'%3E%3Ccircle cx='210' cy='50' r='34'/%3E%3Ccircle cx='210' cy='50' r='16'/%3E%3Cline x1='210' y1='0' x2='210' y2='16'/%3E%3Cline x1='210' y1='84' x2='210' y2='100'/%3E%3C/g%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='140' viewBox='0 0 220 140'%3E%3Cg fill='none' stroke='%23222222' stroke-width='2.4' stroke-linecap='round' opacity='0.05'%3E%3Cline x1='40' y1='70' x2='180' y2='70'/%3E%3Crect x='20' y='45' width='20' height='50' rx='4'/%3E%3Crect x='0' y='55' width='16' height='30' rx='4'/%3E%3Crect x='180' y='45' width='20' height='50' rx='4'/%3E%3Crect x='200' y='55' width='16' height='30' rx='4'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat:no-repeat,no-repeat;
+    background-position:top right,bottom -10px left -10px;
+    background-size:260px 260px,220px 140px;
+  }
+  .section-head{margin-bottom:44px;max-width:60ch;}
+  .section-head .eyebrow{margin-bottom:10px;}
+  .section-head h2{font-size:36px;margin-bottom:12px;color:var(--chalk);}
+  .section-head p{color:var(--muted);font-size:15px;}
+
+  /* subtle equipment watermarks — decorative only, sit behind opaque cards so they never touch text */
+  #assessment{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='160' viewBox='0 0 300 160'%3E%3Cg fill='none' stroke='%23222222' stroke-width='2.6' stroke-linecap='round' opacity='0.045'%3E%3Cline x1='40' y1='80' x2='260' y2='80'/%3E%3Crect x='40' y='45' width='26' height='70' rx='5'/%3E%3Crect x='10' y='55' width='20' height='50' rx='5'/%3E%3Crect x='234' y='45' width='26' height='70' rx='5'/%3E%3Crect x='270' y='55' width='20' height='50' rx='5'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:top -20px right -20px;
+    background-size:300px 160px;
+  }
+  #results{
+    background-image:
+      linear-gradient(100deg,rgba(248,249,250,0.92),rgba(248,249,250,0.75)),
+      url("https://images.unsplash.com/photo-1517344884509-a0c97ec11bcc?fm=jpg&q=80&w=1200&auto=format&fit=crop&sat=-100");
+    background-repeat:no-repeat;
+    background-position:top right;
+    background-size:420px 100%;
+  }
+  footer{
+    position:relative;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='140' viewBox='0 0 220 140'%3E%3Cg fill='none' stroke='%23222222' stroke-width='2.4' stroke-linecap='round' opacity='0.05'%3E%3Cline x1='20' y1='130' x2='20' y2='20'/%3E%3Cline x1='200' y1='130' x2='200' y2='20'/%3E%3Cline x1='20' y1='20' x2='200' y2='20'/%3E%3Cline x1='60' y1='20' x2='60' y2='0'/%3E%3Cline x1='160' y1='20' x2='160' y2='0'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:bottom -10px right 10px;
+    background-size:180px 110px;
+  }
+
+  /* ---------- FORM (ROUNDS) ---------- */
+  .plate-track{display:flex;gap:8px;margin-bottom:36px;align-items:center;}
+  .plate{
+    flex:1;height:8px;background:var(--hairline);border-radius:4px;position:relative;overflow:hidden;
+  }
+  .plate .fill{height:100%;width:0%;background:var(--effort);transition:width .4s ease;}
+  .plate.done .fill{width:100%;background:var(--recovery);}
+  .plate.active .fill{width:100%;}
+  .plate-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap;}
+
+  .form-card{background:var(--panel);border:1px solid var(--hairline);border-radius:18px;padding:44px;box-shadow:var(--shadow-soft);}
+  .round-tag{color:var(--effort);font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;display:block;}
+  .round-title{font-size:26px;margin-bottom:30px;color:var(--chalk);}
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .field-grid.single{grid-template-columns:1fr;}
+  .field{display:flex;flex-direction:column;gap:8px;}
+  .field.span2{grid-column:1/-1;}
+  .field label{font-size:12px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);font-weight:600;}
+  .field input[type=text],
+  .field input[type=number],
+  .field select,
+  .field textarea{
+    background:var(--graphite);border:1.5px solid var(--hairline);color:var(--chalk);
+    padding:13px 16px;border-radius:10px;font-family:'Inter',sans-serif;font-size:14px;
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--effort);box-shadow:0 0 0 4px rgba(214,40,40,0.1);outline:none;}
+  .field textarea{resize:vertical;min-height:64px;}
+  .radio-group{display:flex;gap:10px;flex-wrap:wrap;}
+  .radio-group label{
+    display:flex;align-items:center;gap:8px;background:var(--graphite);border:1.5px solid var(--hairline);
+    padding:11px 16px;border-radius:10px;cursor:pointer;font-size:13px;text-transform:none;letter-spacing:0;font-weight:400;color:var(--chalk);
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .radio-group input{accent-color:var(--effort);}
+  .radio-group label:has(input:checked){border-color:var(--effort);background:var(--effort-dim);}
+  .form-nav{display:flex;justify-content:space-between;margin-top:36px;}
+  .error-msg{color:var(--effort);font-size:12px;margin-top:6px;display:none;}
+
+  /* ---------- RESULTS ---------- */
+  #results{display:none;}
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--hairline);border:1px solid var(--hairline);border-radius:14px;overflow:hidden;margin-bottom:40px;}
+  .stat{background:var(--panel);padding:26px;transition:background .2s ease;}
+  .stat .label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;}
+  .stat .num{font-family:'IBM Plex Mono',monospace;font-size:28px;color:var(--gold);}
+  .stat .unit{font-size:13px;color:var(--muted);margin-left:4px;}
+
+  .tabs{display:flex;gap:2px;margin-bottom:0;border-bottom:1px solid var(--hairline);flex-wrap:wrap;}
+  .tab-btn{
+    background:transparent;border:none;color:var(--muted);padding:14px 20px;font-family:'Oswald',sans-serif;
+    text-transform:uppercase;letter-spacing:0.05em;font-size:14px;font-weight:600;cursor:pointer;
+    border-bottom:2px solid transparent;transition:color .2s ease;
+  }
+  .tab-btn:hover{color:var(--chalk);}
+  .tab-btn.active{color:var(--effort);border-bottom-color:var(--effort);}
+  .tab-panel{display:none;padding:32px 0;}
+  .tab-panel.active{display:block;}
+
+  .day-card{background:var(--panel);border:1px solid var(--hairline);border-radius:18px;margin-bottom:20px;overflow:hidden;box-shadow:var(--shadow-soft);transition:transform .3s ease, box-shadow .3s ease;}
+  .day-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lift);}
+  .day-head{display:flex;justify-content:space-between;align-items:center;padding:20px 26px;background:var(--panel-raised);}
+  .day-head .name{font-size:18px;color:var(--chalk);}
+  .day-head .focus{color:var(--effort);font-family:'IBM Plex Mono',monospace;font-size:12px;text-transform:uppercase;}
+  table{width:100%;border-collapse:collapse;}
+  th,td{text-align:left;padding:14px 26px;font-size:14px;border-top:1px solid var(--hairline);}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;}
+  td.mono{font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  details{border-top:1px solid var(--hairline);}
+  details summary{padding:12px 26px;cursor:pointer;color:var(--effort);font-size:12px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;list-style:none;transition:background .2s ease;}
+  details summary:hover{background:var(--effort-dim);}
+  details summary::-webkit-details-marker{display:none;}
+  details summary::before{content:"+ ";}
+  details[open] summary::before{content:"– ";}
+  .ex-detail{padding:0 26px 20px;font-size:14px;color:var(--chalk);}
+  .ex-detail .row2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px;}
+  .ex-detail .k{color:var(--gold);font-size:12px;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:4px;}
+
+  .meal-card{background:var(--panel);border:1px solid var(--hairline);border-radius:18px;padding:26px 28px;margin-bottom:18px;box-shadow:var(--shadow-soft);transition:transform .3s ease, box-shadow .3s ease;}
+  .meal-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lift);}
+  .meal-card h4{font-size:14px;color:var(--gold);margin-bottom:12px;letter-spacing:0.05em;}
+  .meal-card ul{margin:0;padding-left:18px;font-size:14px;color:var(--chalk);}
+  .meal-card li{margin-bottom:4px;}
+  .food-chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .chip{background:var(--panel-raised);border:1px solid var(--hairline);padding:7px 14px;border-radius:20px;font-size:12px;color:var(--muted);transition:border-color .2s ease, color .2s ease;}
+  .chip:hover{border-color:var(--effort);color:var(--effort);}
+
+  .supp-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .supp-card{background:var(--panel);border:1px solid var(--hairline);border-radius:18px;padding:24px 26px;box-shadow:var(--shadow-soft);transition:transform .3s ease, box-shadow .3s ease;}
+  .supp-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lift);}
+  .supp-card h4{font-size:15px;margin-bottom:8px;color:var(--chalk);}
+  .supp-card .tag{display:inline-block;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;background:var(--effort-dim);color:var(--effort);padding:4px 10px;border-radius:10px;margin-bottom:10px;}
+  .supp-card p{font-size:13px;color:var(--muted);margin:4px 0;}
+  .supp-card strong{color:var(--chalk);}
+
+  .disclaimer{background:var(--effort-dim);border:1px solid #F3B9B9;border-radius:14px;padding:18px 22px;font-size:13px;color:var(--chalk);margin-top:26px;}
+  .disclaimer strong{color:var(--effort);}
+
+  .log-form{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;align-items:flex-end;}
+  .log-form .field{flex:1;min-width:140px;}
+  #logChart{width:100%;height:180px;background:var(--panel);border:1px solid var(--hairline);border-radius:14px;}
+  #logTable td,#logTable th{padding:10px 16px;}
+
+  footer{border-top:1px solid var(--hairline);padding:36px 0;color:var(--muted);font-size:13px;background:#fff;}
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+
+  @media (max-width:840px){
+    .hero .wrap{grid-template-columns:1fr;}
+    h1.headline{font-size:38px;}
+    .field-grid{grid-template-columns:1fr;}
+    .stat-row{grid-template-columns:1fr 1fr;}
+    .supp-grid{grid-template-columns:1fr;}
+    nav .links{display:none;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none !important;}
+    section, header.hero{animation:none !important;}
+  }
+
+  /* ---------- COMMUNITY HUB (additive, namespaced ch-) ---------- */
+  .ch-tabs{display:flex;gap:2px;margin-bottom:0;border-bottom:1px solid var(--hairline);flex-wrap:wrap;}
+  .ch-tab-btn{background:transparent;border:none;color:var(--muted);padding:12px 16px;font-family:'Oswald',sans-serif;text-transform:uppercase;letter-spacing:0.05em;font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:color .2s ease;}
+  .ch-tab-btn:hover{color:var(--chalk);}
+  .ch-tab-btn.active{color:var(--effort);border-bottom-color:var(--effort);}
+  .ch-tab-panel{display:none;padding:28px 0;}
+  .ch-tab-panel.active{display:block;}
+  .ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
+  .ch-card{background:var(--panel);border:1px solid var(--hairline);border-radius:18px;padding:20px 22px;box-shadow:var(--shadow-soft);transition:transform .3s ease,box-shadow .3s ease;}
+  .ch-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lift);}
+  .ch-user-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .ch-avatar{width:40px;height:40px;border-radius:50%;background:var(--effort-dim);color:var(--effort);display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;flex-shrink:0;overflow:hidden;}
+  .ch-avatar img{width:100%;height:100%;object-fit:cover;}
+  .ch-username{font-weight:600;font-size:14px;color:var(--chalk);}
+  .ch-meta{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;}
+  .ch-ba{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0;}
+  .ch-ba img{width:100%;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--hairline);}
+  .ch-ba-label{font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);text-align:center;margin-top:4px;}
+  .ch-actions{display:flex;gap:14px;margin-top:12px;padding-top:12px;border-top:1px solid var(--hairline);}
+  .ch-action{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;font-family:'Inter',sans-serif;transition:color .2s ease;}
+  .ch-action:hover{color:var(--effort);}
+  .ch-action.liked{color:var(--effort);font-weight:600;}
+  .ch-action.saved{color:var(--gold);font-weight:600;}
+  .ch-comments{margin-top:12px;padding-top:12px;border-top:1px dashed var(--hairline);display:none;}
+  .ch-comments.open{display:block;}
+  .ch-comment{font-size:13px;color:var(--chalk);margin-bottom:8px;}
+  .ch-comment b{color:var(--effort);font-weight:600;}
+  .ch-inline-form{display:flex;gap:8px;margin-top:8px;}
+  .ch-inline-form input{flex:1;background:var(--graphite);border:1.5px solid var(--hairline);border-radius:10px;padding:8px 12px;font-size:13px;color:var(--chalk);}
+  .ch-skill-chip{background:var(--effort-dim);color:var(--effort);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;display:inline-block;margin:2px 4px 2px 0;}
+  .ch-badge{background:var(--panel-raised);border:1px solid var(--hairline);color:var(--gold);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;display:inline-block;margin:2px 4px 2px 0;}
+  .ch-filter-bar{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px;background:var(--panel);border:1px solid var(--hairline);border-radius:18px;padding:20px;}
+  .ch-filter-bar input,.ch-filter-bar select{background:var(--graphite);border:1.5px solid var(--hairline);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--chalk);font-family:'Inter',sans-serif;}
+  .ch-lb-row{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--hairline);}
+  .ch-lb-row:first-child{border-top:none;}
+  .ch-lb-rank{font-family:'IBM Plex Mono',monospace;color:var(--effort);font-weight:600;width:30px;}
+  .ch-empty{color:var(--muted);font-size:14px;padding:24px;text-align:center;background:var(--panel-raised);border-radius:14px;}
+  .ch-chat-list{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;}
+  .ch-chat-users{flex:0 0 220px;background:var(--panel);border:1px solid var(--hairline);border-radius:18px;overflow:hidden;}
+  .ch-chat-user{padding:12px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--hairline);transition:background .2s;}
+  .ch-chat-user:hover,.ch-chat-user.active{background:var(--effort-dim);}
+  .ch-chat-box{flex:1;min-width:260px;background:var(--panel);border:1px solid var(--hairline);border-radius:18px;padding:18px;display:flex;flex-direction:column;height:380px;}
+  .ch-chat-msgs{flex:1;overflow-y:auto;margin-bottom:12px;}
+  .ch-msg{max-width:75%;padding:8px 12px;border-radius:12px;font-size:13px;margin-bottom:8px;}
+  .ch-msg.me{background:var(--effort);color:#fff;margin-left:auto;}
+  .ch-msg.them{background:var(--panel-raised);color:var(--chalk);}
+  .ch-cover{height:120px;border-radius:18px 18px 0 0;background:linear-gradient(135deg,var(--effort),var(--gold));margin:-44px -44px 20px;}
+  @media (max-width:840px){.ch-filter-bar{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo"><span class="dot"></span>GYM KI VELLU<span style="color:var(--effort)"> MAYA</span></div>
+    <div class="links">
+      <a href="#assessment">Assessment</a>
+      <a href="#how">How it works</a>
+      <a href="#community">Community</a>
+      <a href="#about">About</a>
+    </div>
+    <button class="btn small" onclick="document.getElementById('assessment').scrollIntoView()">Start assessment</button>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <span class="eyebrow">// Training ledger — v1.0</span>
+      <h1 class="headline">Train with data.<br>Eat with <span class="accent">purpose.</span></h1>
+      <p class="sub">Answer eleven questions about your body, goals, and schedule. Get a complete workout split, calorie and macro targets, and a real meal plan — generated instantly, built around evidence, not guesswork.</p>
+      <div class="hero-actions">
+        <button class="btn" onclick="document.getElementById('assessment').scrollIntoView()">Start assessment →</button>
+        <button class="btn ghost" onclick="document.getElementById('how').scrollIntoView()">See how it works</button>
+      </div>
+    </div>
+    <div class="card-mock">
+      <div class="strip"></div>
+      <div class="body">
+        <div class="head">
+          <h3>Training card</h3>
+          <span class="id">NO. 00184</span>
+        </div>
+        <div class="row"><span class="label">Goal</span><span class="val">Body recomposition</span></div>
+        <div class="row"><span class="label">Split</span><span class="val">Push / Pull / Legs</span></div>
+        <div class="row"><span class="label">Calorie target</span><span class="val">2,410 kcal</span></div>
+        <div class="row"><span class="label">Protein</span><span class="val">158 g</span></div>
+        <div class="row"><span class="label">Days / week</span><span class="val">5</span></div>
+        <div class="row"><span class="label">Status</span><span class="val" style="color:var(--recovery)">Generated on submit</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="how" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">// How it works</span>
+      <h2>Three rounds, one plan.</h2>
+      <p>No accounts, no ads, no data leaving your browser. Everything below runs client-side.</p>
+    </div>
+    <div class="stat-row" style="margin-bottom:0;">
+      <div class="stat"><div class="label">Round 1</div><div class="num" style="font-size:16px;color:var(--chalk)">Body &amp; goal</div></div>
+      <div class="stat"><div class="label">Round 2</div><div class="num" style="font-size:16px;color:var(--chalk)">Experience &amp; gear</div></div>
+      <div class="stat"><div class="label">Round 3</div><div class="num" style="font-size:16px;color:var(--chalk)">Diet &amp; schedule</div></div>
+      <div class="stat"><div class="label">Output</div><div class="num" style="font-size:16px;color:var(--recovery)">Full plan</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="assessment">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">// Assessment</span>
+      <h2>Build your plan</h2>
+      <p>Every field feeds the generator below — nothing here is decorative.</p>
+    </div>
+
+    <div class="plate-track" aria-hidden="true">
+      <div class="plate active" id="plate-1"><div class="fill"></div></div>
+      <div class="plate" id="plate-2"><div class="fill"></div></div>
+      <div class="plate" id="plate-3"><div class="fill"></div></div>
+      <div class="plate-label" id="plateLabel">ROUND 1 OF 3</div>
+    </div>
+
+    <form class="form-card" id="assessForm" novalidate>
+
+      <!-- ROUND 1 -->
+      <div class="round" data-round="1">
+        <span class="round-tag">Round 1 / 3</span>
+        <h3 class="round-title">Body &amp; goal</h3>
+        <div class="field-grid">
+          <div class="field">
+            <label for="age">Age</label>
+            <input type="number" id="age" min="14" max="90" required placeholder="e.g. 27">
+          </div>
+          <div class="field">
+            <label>Gender</label>
+            <div class="radio-group">
+              <label><input type="radio" name="gender" value="male" checked> Male</label>
+              <label><input type="radio" name="gender" value="female"> Female</label>
+            </div>
+          </div>
+          <div class="field">
+            <label for="height">Height (cm)</label>
+            <input type="number" id="height" min="120" max="230" required placeholder="e.g. 172">
+          </div>
+          <div class="field">
+            <label for="weight">Weight (kg)</label>
+            <input type="number" id="weight" min="30" max="250" required placeholder="e.g. 68">
+          </div>
+          <div class="field span2">
+            <label>Primary fitness goal</label>
+            <div class="radio-group">
+              <label><input type="radio" name="goal" value="fatloss" checked> Fat loss</label>
+              <label><input type="radio" name="goal" value="musclegain"> Muscle gain</label>
+              <label><input type="radio" name="goal" value="strength"> Strength</label>
+              <label><input type="radio" name="goal" value="recomp"> Body recomposition</label>
+              <label><input type="radio" name="goal" value="general"> General fitness / endurance</label>
+            </div>
+          </div>
+        </div>
+        <div class="error-msg" id="err1">Please fill in age, height, and weight.</div>
+        <div class="form-nav"><span></span><button type="button" class="btn" onclick="nextRound(1)">Next round →</button></div>
+      </div>
+
+      <!-- ROUND 2 -->
+      <div class="round" data-round="2" style="display:none;">
+        <span class="round-tag">Round 2 / 3</span>
+        <h3 class="round-title">Experience &amp; equipment</h3>
+        <div class="field-grid">
+          <div class="field span2">
+            <label>Activity level (outside workouts)</label>
+            <div class="radio-group">
+              <label><input type="radio" name="activity" value="1.2" checked> Sedentary (desk job)</label>
+              <label><input type="radio" name="activity" value="1.375"> Lightly active</label>
+              <label><input type="radio" name="activity" value="1.55"> Moderately active</label>
+              <label><input type="radio" name="activity" value="1.725"> Very active</label>
+              <label><input type="radio" name="activity" value="1.9"> Extremely active</label>
+            </div>
+          </div>
+          <div class="field span2">
+            <label>Workout experience</label>
+            <div class="radio-group">
+              <label><input type="radio" name="experience" value="beginner" checked> Beginner (0–6mo)</label>
+              <label><input type="radio" name="experience" value="intermediate"> Intermediate (6mo–2yr)</label>
+              <label><input type="radio" name="experience" value="advanced"> Advanced (2yr+)</label>
+            </div>
+          </div>
+          <div class="field span2">
+            <label>Equipment access</label>
+            <div class="radio-group">
+              <label><input type="radio" name="equipment" value="gym" checked> Full gym</label>
+              <label><input type="radio" name="equipment" value="home"> Home (dumbbells / bands)</label>
+              <label><input type="radio" name="equipment" value="bodyweight"> Bodyweight only</label>
+            </div>
+          </div>
+        </div>
+        <div class="form-nav">
+          <button type="button" class="btn ghost" onclick="prevRound(2)">← Back</button>
+          <button type="button" class="btn" onclick="nextRound(2)">Next round →</button>
+        </div>
+      </div>
+
+      <!-- ROUND 3 -->
+      <div class="round" data-round="3" style="display:none;">
+        <span class="round-tag">Round 3 / 3</span>
+        <h3 class="round-title">Diet &amp; schedule</h3>
+        <div class="field-grid">
+          <div class="field span2">
+            <label>Dietary preference</label>
+            <div class="radio-group">
+              <label><input type="radio" name="diet" value="veg" checked> Vegetarian</label>
+              <label><input type="radio" name="diet" value="vegan"> Vegan</label>
+              <label><input type="radio" name="diet" value="nonveg"> Non-vegetarian</label>
+            </div>
+          </div>
+          <div class="field span2">
+            <label for="allergies">Food allergies or medical conditions (optional)</label>
+            <textarea id="allergies" placeholder="e.g. lactose intolerant, knee injury, none"></textarea>
+          </div>
+          <div class="field">
+            <label for="days">Workout days per week</label>
+            <select id="days">
+              <option value="1">1 day</option>
+              <option value="2">2 days</option>
+              <option value="3" selected>3 days</option>
+              <option value="4">4 days</option>
+              <option value="5">5 days</option>
+              <option value="6">6 days</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="time">Time available per session</label>
+            <select id="time">
+              <option value="30">~30 minutes</option>
+              <option value="45" selected>~45 minutes</option>
+              <option value="60">~60 minutes</option>
+              <option value="90">90+ minutes</option>
+            </select>
+          </div>
+        </div>
+        <div class="disclaimer">
+          <strong>Before you continue:</strong> if you have a diagnosed medical condition, injury, or you're pregnant, talk to a qualified healthcare professional before starting any new exercise or nutrition program. This tool gives general, evidence-informed guidance — it isn't a medical service.
+        </div>
+        <div class="form-nav">
+          <button type="button" class="btn ghost" onclick="prevRound(3)">← Back</button>
+          <button type="submit" class="btn">Generate my plan →</button>
+        </div>
+      </div>
+
+    </form>
+  </div>
+</section>
+
+<section id="results" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">// Your plan</span>
+      <h2 id="planTitle">Training card no. 00184</h2>
+      <p>Regenerate any time by adjusting the assessment above — nothing is saved between visits.</p>
+    </div>
+
+    <div class="stat-row" id="statRow"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="overview">Overview</button>
+      <button class="tab-btn" data-tab="workout">Workout plan</button>
+      <button class="tab-btn" data-tab="nutrition">Nutrition</button>
+      <button class="tab-btn" data-tab="supplements">Supplements</button>
+      <button class="tab-btn" data-tab="progress">Progress log</button>
+    </div>
+
+    <div class="tab-panel active" id="tab-overview"></div>
+    <div class="tab-panel" id="tab-workout"></div>
+    <div class="tab-panel" id="tab-nutrition"></div>
+    <div class="tab-panel" id="tab-supplements"></div>
+    <div class="tab-panel" id="tab-progress"></div>
+  </div>
+</section>
+
+<section id="community" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">// Fitness Community Hub</span>
+      <h2>Train together</h2>
+      <p>Share transformations, ask questions, find a training partner, and swap skills with real members — all saved locally in your browser.</p>
+    </div>
+
+    <div id="chOnboard" class="form-card" style="margin-bottom:32px;">
+      <h3 class="round-title" style="font-size:20px;">Join the community</h3>
+      <div class="field-grid">
+        <div class="field"><label for="chName">Display name</label><input type="text" id="chName" placeholder="e.g. Arjun K"></div>
+        <div class="field"><label for="chCity">City</label><input type="text" id="chCity" placeholder="e.g. Vijayawada"></div>
+        <div class="field"><label for="chAge">Age</label><input type="number" id="chAge" min="14" max="90" placeholder="e.g. 24"></div>
+        <div class="field"><label>Gender</label>
+          <div class="radio-group">
+            <label><input type="radio" name="chGender" value="male" checked> Male</label>
+            <label><input type="radio" name="chGender" value="female"> Female</label>
+          </div>
+        </div>
+        <div class="field span2"><label>Primary goal</label>
+          <div class="radio-group">
+            <label><input type="radio" name="chGoal" value="fatloss" checked> Fat loss</label>
+            <label><input type="radio" name="chGoal" value="musclegain"> Muscle gain</label>
+            <label><input type="radio" name="chGoal" value="strength"> Strength</label>
+            <label><input type="radio" name="chGoal" value="recomp"> Recomposition</label>
+          </div>
+        </div>
+        <div class="field span2"><label>Skills you can help others with (comma-separated)</label><input type="text" id="chSkills" placeholder="e.g. Nutrition, Powerlifting, Yoga"></div>
+      </div>
+      <div class="form-nav"><span></span><button type="button" class="btn" onclick="CH.join()">Join community →</button></div>
+    </div>
+
+    <div id="chApp" style="display:none;">
+      <div class="ch-tabs" id="chTabs">
+        <button class="ch-tab-btn active" data-ch="feed">Feed</button>
+        <button class="ch-tab-btn" data-ch="transform">Transformations</button>
+        <button class="ch-tab-btn" data-ch="ask">Ask Community</button>
+        <button class="ch-tab-btn" data-ch="skills">Skill Exchange</button>
+        <button class="ch-tab-btn" data-ch="partner">Find Partner</button>
+        <button class="ch-tab-btn" data-ch="groups">Groups</button>
+        <button class="ch-tab-btn" data-ch="challenges">Challenges</button>
+        <button class="ch-tab-btn" data-ch="leaderboard">Leaderboard</button>
+        <button class="ch-tab-btn" data-ch="messages">Messages</button>
+        <button class="ch-tab-btn" data-ch="profile">Profile</button>
+      </div>
+
+      <!-- FEED / CREATE POST -->
+      <div class="ch-tab-panel active" id="ch-feed">
+        <div class="form-card" style="margin-bottom:24px;">
+          <h4 style="font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:15px;letter-spacing:0.05em;margin-bottom:16px;">Create a post</h4>
+          <div class="field-grid">
+            <div class="field span2"><label for="chCaption">Caption</label><textarea id="chCaption" placeholder="Share an update, tip, or win..."></textarea></div>
+            <div class="field"><label for="chBefore">Before photo (optional)</label><input type="file" accept="image/*" id="chBefore"></div>
+            <div class="field"><label for="chAfter">After photo (optional)</label><input type="file" accept="image/*" id="chAfter"></div>
+            <div class="field"><label for="chWeightChange">Weight change</label><input type="text" id="chWeightChange" placeholder="e.g. -6 kg"></div>
+            <div class="field"><label for="chTimeTaken">Time taken</label><input type="text" id="chTimeTaken" placeholder="e.g. 12 weeks"></div>
+          </div>
+          <div class="form-nav"><span></span><button type="button" class="btn" onclick="CH.createPost()">Post →</button></div>
+        </div>
+        <div class="ch-grid" id="chFeedGrid"></div>
+      </div>
+
+      <!-- TRANSFORMATIONS -->
+      <div class="ch-tab-panel" id="ch-transform">
+        <div class="ch-grid" id="chTransformGrid"></div>
+      </div>
+
+      <!-- ASK COMMUNITY -->
+      <div class="ch-tab-panel" id="ch-ask">
+        <div class="form-card" style="margin-bottom:24px;">
+          <div class="field-grid single">
+            <div class="field"><label for="chQuestion">Ask a question</label><input type="text" id="chQuestion" placeholder="e.g. How do I reduce belly fat?"></div>
+          </div>
+          <div class="form-nav"><span></span><button type="button" class="btn" onclick="CH.askQuestion()">Post question →</button></div>
+        </div>
+        <div id="chQuestionList"></div>
+      </div>
+
+      <!-- SKILL EXCHANGE -->
+      <div class="ch-tab-panel" id="ch-skills">
+        <div class="ch-grid" id="chSkillsGrid"></div>
+      </div>
+
+      <!-- FIND PARTNER -->
+      <div class="ch-tab-panel" id="ch-partner">
+        <div class="ch-filter-bar">
+          <input type="text" id="chFCity" placeholder="City">
+          <select id="chFGoal"><option value="">Any goal</option><option value="fatloss">Fat loss</option><option value="musclegain">Muscle gain</option><option value="strength">Strength</option><option value="recomp">Recomposition</option></select>
+          <select id="chFExp"><option value="">Any experience</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option></select>
+          <button type="button" class="btn small" onclick="CH.renderPartners()">Search</button>
+        </div>
+        <div class="ch-grid" id="chPartnerGrid"></div>
+      </div>
+
+      <!-- GROUPS -->
+      <div class="ch-tab-panel" id="ch-groups">
+        <div class="form-card" style="margin-bottom:24px;">
+          <div class="field-grid">
+            <div class="field"><label for="chGroupName">New group name</label><input type="text" id="chGroupName" placeholder="e.g. Calisthenics"></div>
+            <div class="field"><label for="chGroupDesc">Description</label><input type="text" id="chGroupDesc" placeholder="What's it about?"></div>
+          </div>
+          <div class="form-nav"><span></span><button type="button" class="btn" onclick="CH.createGroup()">Create group →</button></div>
+        </div>
+        <div class="ch-grid" id="chGroupsGrid"></div>
+      </div>
+
+      <!-- CHALLENGES -->
+      <div class="ch-tab-panel" id="ch-challenges">
+        <div class="ch-grid" id="chChallengesGrid"></div>
+      </div>
+
+      <!-- LEADERBOARD -->
+      <div class="ch-tab-panel" id="ch-leaderboard">
+        <div class="form-card" id="chLeaderboardBox"></div>
+      </div>
+
+      <!-- MESSAGES -->
+      <div class="ch-tab-panel" id="ch-messages">
+        <div class="ch-chat-list">
+          <div class="ch-chat-users" id="chChatUsers"></div>
+          <div class="ch-chat-box">
+            <div class="ch-chat-msgs" id="chChatMsgs"></div>
+            <div class="ch-inline-form">
+              <input type="text" id="chMsgText" placeholder="Type a message...">
+              <button class="btn small" type="button" onclick="CH.sendMessage()">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="ch-tab-panel" id="ch-profile">
+        <div class="ch-card" style="max-width:640px;">
+          <div class="ch-cover"></div>
+          <div id="chProfileBox"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="about">
+  <div class="wrap">
+    <span>FitCoach AI — evidence-based coaching, generated in your browser.</span>
+    <span>Not a substitute for professional medical or dietetic advice.</span>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   EXERCISE DATABASE
+   Each muscle group has entries per equipment tier.
+   ========================================================= */
+const EX = {
+  chest: {
+    gym: [
+      {name:"Barbell Bench Press", sets:4, reps:"6–8", rest:"2–3 min", tempo:"3-0-1-1",
+       form:"Retract shoulder blades, feet flat, bar path travels to lower chest, elbows ~45° from torso.",
+       mistake:"Flaring elbows to 90° and bouncing the bar off the chest.",
+       tip:"Drive feet into the floor and keep upper back tight throughout the set.",
+       beginnerAlt:"Machine chest press for controlled bar path.",
+       advancedVar:"Pause bench press (2-sec pause on chest) or add chains/bands."},
+      {name:"Incline Dumbbell Press", sets:3, reps:"8–12", rest:"90 sec", tempo:"2-0-1-1",
+       form:"Bench at 30–45°, press dumbbells up and slightly inward, full stretch at bottom.",
+       mistake:"Setting the incline too steep, which shifts load to front delts.",
+       tip:"Squeeze chest at the top instead of locking elbows hard.",
+       beginnerAlt:"Incline machine press.",
+       advancedVar:"1.5-rep incline press for extended time under tension."}
+    ],
+    home: [
+      {name:"Dumbbell Bench/Floor Press", sets:4, reps:"8–12", rest:"90 sec", tempo:"2-0-1-1",
+       form:"On floor or bench, press dumbbells straight up, elbows finish under wrists.",
+       mistake:"Letting shoulders roll forward at lockout.",
+       tip:"Pause briefly at the top to reinforce control.",
+       beginnerAlt:"Reduce range on floor press (natural floor stop protects shoulders).",
+       advancedVar:"Alternate single-arm press for added core demand."},
+      {name:"Push-Up Variations", sets:3, reps:"12–20", rest:"60 sec", tempo:"2-0-1-1",
+       form:"Straight line from head to heels, hands under shoulders, chest to floor.",
+       mistake:"Sagging hips or flaring elbows.",
+       tip:"Add a resistance band across your back for extra load.",
+       beginnerAlt:"Incline push-ups on a bench or counter.",
+       advancedVar:"Deficit push-ups with hands elevated on blocks."}
+    ],
+    bodyweight: [
+      {name:"Standard Push-Up", sets:4, reps:"10–20", rest:"60–90 sec", tempo:"2-0-1-1",
+       form:"Rigid plank, lower chest to just above floor, full lockout at top.",
+       mistake:"Partial range of motion.",
+       tip:"Slow the eccentric (lowering) phase to 3 seconds for more growth stimulus.",
+       beginnerAlt:"Knee push-ups or wall push-ups.",
+       advancedVar:"Archer push-ups or one-arm progression."},
+      {name:"Dips (chair/bench)", sets:3, reps:"8–15", rest:"90 sec", tempo:"2-0-1-1",
+       form:"Lean forward slightly to bias chest, lower until shoulders are level with elbows.",
+       mistake:"Going too deep and straining the shoulder joint.",
+       tip:"Keep elbows tracking back, not flared wide.",
+       beginnerAlt:"Bent-knee bench dips.",
+       advancedVar:"Weighted dips with a backpack."}
+    ]
+  },
+  back: {
+    gym: [
+      {name:"Barbell Bent-Over Row", sets:4, reps:"6–10", rest:"2 min", tempo:"2-0-1-1",
+       form:"Hinge at hips ~45°, pull bar to lower ribs, squeeze shoulder blades together.",
+       mistake:"Rounding the lower back to generate momentum.",
+       tip:"Brace your core hard before each rep, like resisting a punch.",
+       beginnerAlt:"Chest-supported machine row.",
+       advancedVar:"Pendlay row (dead-stop each rep)."},
+      {name:"Lat Pulldown / Pull-Up", sets:4, reps:"8–12", rest:"90 sec", tempo:"2-0-1-1",
+       form:"Pull elbows down and back, lead with chest, avoid using body momentum.",
+       mistake:"Yanking with arms only, no scapular retraction.",
+       tip:"Think 'elbows to back pockets'.",
+       beginnerAlt:"Assisted pull-up machine or band-assisted pull-ups.",
+       advancedVar:"Weighted pull-ups."}
+    ],
+    home: [
+      {name:"Single-Arm Dumbbell Row", sets:4, reps:"10–12", rest:"90 sec", tempo:"2-0-1-1",
+       form:"Support opposite knee/hand on bench, pull dumbbell to hip, elbow close to body.",
+       mistake:"Twisting the torso to complete the rep.",
+       tip:"Pause at the top for a 1-second squeeze.",
+       beginnerAlt:"Reduce load and focus on range of motion.",
+       advancedVar:"Add a slow 4-second eccentric."},
+      {name:"Resistance Band Pull-Apart / Row", sets:3, reps:"12–15", rest:"60 sec", tempo:"2-0-1-1",
+       form:"Anchor band, pull elbows back keeping arms roughly parallel to floor.",
+       mistake:"Using shoulders instead of squeezing shoulder blades.",
+       tip:"Slow the return phase to keep tension on the band.",
+       beginnerAlt:"Lighter band tension.",
+       advancedVar:"Heavier band + pause at full contraction."}
+    ],
+    bodyweight: [
+      {name:"Inverted Row (table/bar)", sets:4, reps:"8–15", rest:"90 sec", tempo:"2-0-1-1",
+       form:"Body straight, pull chest to bar, squeeze shoulder blades together.",
+       mistake:"Letting hips sag.",
+       tip:"Raise feet higher to increase difficulty.",
+       beginnerAlt:"Steeper body angle (more upright) to reduce load.",
+       advancedVar:"Feet elevated inverted row."},
+      {name:"Superman Hold / Reverse Snow Angel", sets:3, reps:"12–15", rest:"60 sec", tempo:"2-1-1-1",
+       form:"Lie face down, lift chest and legs slightly, squeeze glutes and upper back.",
+       mistake:"Hyperextending the neck.",
+       tip:"Keep gaze down to protect the cervical spine.",
+       beginnerAlt:"Alternate arm/leg raises instead of full lift.",
+       advancedVar:"Add a 2-second hold at peak contraction."}
+    ]
+  },
+  shoulders: {
+    gym: [
+      {name:"Barbell/DB Overhead Press", sets:4, reps:"6–10", rest:"2 min", tempo:"2-0-1-1",
+       form:"Brace core, press straight overhead, avoid excessive lower-back arch.",
+       mistake:"Flaring ribs and hyperextending the spine.",
+       tip:"Squeeze glutes to keep the torso stacked.",
+       beginnerAlt:"Seated machine shoulder press.",
+       advancedVar:"Push press using leg drive."},
+      {name:"Cable/DB Lateral Raise", sets:3, reps:"12–15", rest:"60 sec", tempo:"2-0-1-1",
+       form:"Slight forward lean, raise to shoulder height, lead with elbows.",
+       mistake:"Using momentum or shrugging the traps.",
+       tip:"Imagine pouring water out of a jug at the top of the movement.",
+       beginnerAlt:"Lighter dumbbells, partial range.",
+       advancedVar:"Lean-away cable lateral raise for constant tension."}
+    ],
+    home: [
+      {name:"Dumbbell Shoulder Press", sets:4, reps:"8–12", rest:"90 sec", tempo:"2-0-1-1",
+       form:"Press dumbbells up and slightly inward, avoid clanging at top.",
+       mistake:"Arching the back excessively.",
+       tip:"Perform seated on a chair for more stability if needed.",
+       beginnerAlt:"Single-arm press with lighter load.",
+       advancedVar:"Standing single-arm press for core challenge."},
+      {name:"Band Lateral Raise", sets:3, reps:"15–20", rest:"60 sec", tempo:"2-0-1-1",
+       form:"Stand on band, raise arms to sides to shoulder height.",
+       mistake:"Shrugging shoulders up toward ears.",
+       tip:"Keep a slight bend in the elbow throughout.",
+       beginnerAlt:"Lighter band.",
+       advancedVar:"Slow 4-second lowering phase."}
+    ],
+    bodyweight: [
+      {name:"Pike Push-Up", sets:4, reps:"8–15", rest:"90 sec", tempo:"2-0-1-1",
+       form:"Hips high in an inverted-V, lower head toward floor between hands.",
+       mistake:"Turning it into a squat by bending knees excessively.",
+       tip:"Elevate feet on a step to increase shoulder emphasis.",
+       beginnerAlt:"Reduce hip height (less pike angle).",
+       advancedVar:"Wall-walk toward handstand push-up."},
+      {name:"Arm Circles / Plank Shoulder Taps", sets:3, reps:"20 total", rest:"45 sec", tempo:"controlled",
+       form:"In plank, tap opposite shoulder while keeping hips still.",
+       mistake:"Rotating hips side to side.",
+       tip:"Widen feet stance for more stability.",
+       beginnerAlt:"Perform from knees.",
+       advancedVar:"Add a push-up between each tap."}
+    ]
+  },
+  legs: {
+    gym: [
+      {name:"Barbell Back Squat", sets:4, reps:"6–10", rest:"2–3 min", tempo:"3-0-1-1",
+       form:"Bar on upper traps, brace core, hips and knees break together, chest up.",
+       mistake:"Knees caving inward or heels lifting off the floor.",
+       tip:"Push knees out in line with toes throughout the descent.",
+       beginnerAlt:"Goblet squat with a dumbbell.",
+       advancedVar:"Pause squat (2-sec pause at bottom) or front squat."},
+      {name:"Romanian Deadlift", sets:3, reps:"8–12", rest:"2 min", tempo:"3-0-1-1",
+       form:"Soft knee bend, hinge at hips, bar/dumbbells stay close to legs.",
+       mistake:"Rounding the lower back or turning it into a squat.",
+       tip:"Feel a stretch in the hamstrings, stop before back rounds.",
+       beginnerAlt:"Dumbbell RDL with lighter load.",
+       advancedVar:"Single-leg RDL for added stability demand."}
+    ],
+    home: [
+      {name:"Goblet Squat", sets:4, reps:"10–15", rest:"90 sec", tempo:"2-0-1-1",
+       form:"Hold dumbbell at chest, squat between knees, chest stays tall.",
+       mistake:"Leaning too far forward.",
+       tip:"Elbows can gently brush inside of knees at the bottom.",
+       beginnerAlt:"Bodyweight squat first, add load once form is solid.",
+       advancedVar:"Bulgarian split squat with rear foot elevated."},
+      {name:"Dumbbell Romanian Deadlift", sets:3, reps:"10–12", rest:"90 sec", tempo:"3-0-1-1",
+       form:"Hinge hips back, dumbbells slide down thighs, slight knee bend.",
+       mistake:"Squatting the weight down instead of hinging.",
+       tip:"Keep dumbbells close to the legs the entire rep.",
+       beginnerAlt:"Reduce range of motion until hamstring flexibility improves.",
+       advancedVar:"Single-leg dumbbell RDL."}
+    ],
+    bodyweight: [
+      {name:"Bodyweight Squat / Jump Squat", sets:4, reps:"15–25", rest:"60–90 sec", tempo:"2-0-1-1",
+       form:"Feet shoulder-width, sit hips back and down, knees track over toes.",
+       mistake:"Rising onto toes at the top.",
+       tip:"Add a 2-second pause at the bottom for more difficulty.",
+       beginnerAlt:"Box/chair-assisted squat.",
+       advancedVar:"Jump squat for explosive power."},
+      {name:"Walking Lunge", sets:3, reps:"12–16 per leg", rest:"90 sec", tempo:"2-0-1-1",
+       form:"Step forward, both knees to ~90°, torso upright.",
+       mistake:"Front knee traveling far past the toes with poor control.",
+       tip:"Push through the front heel to stand.",
+       beginnerAlt:"Stationary reverse lunge holding onto a wall.",
+       advancedVar:"Add a jump between lunge steps."}
+    ]
+  },
+  glutes: {
+    gym: [
+      {name:"Barbell Hip Thrust", sets:4, reps:"8–12", rest:"2 min", tempo:"2-1-1-1",
+       form:"Upper back on bench, drive hips up, full lockout with ribs down.",
+       mistake:"Overextending the lower back at the top.",
+       tip:"Pause and squeeze glutes hard for 1 second at the top.",
+       beginnerAlt:"Bodyweight glute bridge.",
+       advancedVar:"Banded hip thrust for extra top-range tension."}
+    ],
+    home: [
+      {name:"Dumbbell Glute Bridge", sets:4, reps:"12–15", rest:"90 sec", tempo:"2-1-1-1",
+       form:"Dumbbell on hips, drive through heels, squeeze glutes at top.",
+       mistake:"Pushing through toes instead of heels.",
+       tip:"Keep chin tucked to avoid neck strain.",
+       beginnerAlt:"Bodyweight bridge only.",
+       advancedVar:"Single-leg glute bridge."}
+    ],
+    bodyweight: [
+      {name:"Glute Bridge / Single-Leg Bridge", sets:4, reps:"15–20", rest:"60 sec", tempo:"2-1-1-1",
+       form:"Feet hip-width, drive hips up, squeeze at top for a full second.",
+       mistake:"Arching the lower back excessively.",
+       tip:"Press knees slightly outward to engage glutes over quads.",
+       beginnerAlt:"Reduce range of motion.",
+       advancedVar:"Single-leg version or elevate shoulders on a bench."}
+    ]
+  },
+  biceps: {
+    gym: [
+      {name:"Barbell/EZ-Bar Curl", sets:3, reps:"8–12", rest:"60–90 sec", tempo:"2-0-1-1",
+       form:"Elbows pinned to sides, curl without swinging the torso.",
+       mistake:"Using body momentum ('cheat curls') on every rep.",
+       tip:"Squeeze at the top and control the lowering phase.",
+       beginnerAlt:"Cable curl for constant tension with less stabilization demand.",
+       advancedVar:"Drag curl or 21s technique."}
+    ],
+    home: [
+      {name:"Dumbbell Curl (alternating)", sets:3, reps:"10–14", rest:"60 sec", tempo:"2-0-1-1",
+       form:"Rotate palm up as you curl, keep elbow stationary.",
+       mistake:"Letting the elbow drift forward.",
+       tip:"Face a mirror or wall to self-check elbow position.",
+       beginnerAlt:"Seated to remove swing.",
+       advancedVar:"Incline dumbbell curl for a longer stretch."}
+    ],
+    bodyweight: [
+      {name:"Band Curl", sets:3, reps:"12–20", rest:"60 sec", tempo:"2-0-1-1",
+       form:"Stand on band, curl hands to shoulders, elbows fixed.",
+       mistake:"Flaring elbows out to the sides.",
+       tip:"Choke up on the band for more resistance as it shortens.",
+       beginnerAlt:"Lighter band tension.",
+       advancedVar:"Slow negative (4-sec lowering)."}
+    ]
+  },
+  triceps: {
+    gym: [
+      {name:"Cable Triceps Pushdown", sets:3, reps:"10–15", rest:"60–90 sec", tempo:"2-0-1-1",
+       form:"Elbows pinned at sides, extend fully, control the return.",
+       mistake:"Letting elbows drift forward and using shoulders.",
+       tip:"Lean slightly forward and keep elbows glued to ribs.",
+       beginnerAlt:"Assisted machine dip.",
+       advancedVar:"Overhead cable triceps extension for long-head emphasis."}
+    ],
+    home: [
+      {name:"Dumbbell Overhead Triceps Extension", sets:3, reps:"10–15", rest:"60 sec", tempo:"2-0-1-1",
+       form:"Both hands on one dumbbell overhead, lower behind head, extend fully.",
+       mistake:"Flaring elbows out wide.",
+       tip:"Keep elbows pointing forward, close to your ears.",
+       beginnerAlt:"Two-hand support with lighter weight.",
+       advancedVar:"Single-arm version."}
+    ],
+    bodyweight: [
+      {name:"Close-Grip / Bench Dip", sets:3, reps:"10–20", rest:"60–90 sec", tempo:"2-0-1-1",
+       form:"Hands close together (push-up) or behind on bench (dip), elbows track back.",
+       mistake:"Letting elbows flare wide.",
+       tip:"Keep torso rigid, no sagging hips.",
+       beginnerAlt:"Bent-knee bench dips or incline close-grip push-ups.",
+       advancedVar:"Feet elevated bench dips."}
+    ]
+  },
+  forearms: {
+    gym: [
+      {name:"Barbell Wrist Curl", sets:3, reps:"15–20", rest:"45–60 sec", tempo:"2-0-1-1",
+       form:"Forearms on bench/thighs, curl wrists up through full range.",
+       mistake:"Using too much weight and only moving a few inches.",
+       tip:"Slow the lowering phase for a deeper stretch.",
+       beginnerAlt:"Lighter dumbbells one arm at a time.",
+       advancedVar:"Reverse wrist curl added for extensors."}
+    ],
+    home: [
+      {name:"Dumbbell Wrist Curl / Farmer's Carry", sets:3, reps:"15–20 or 40m walk", rest:"60 sec", tempo:"controlled",
+       form:"For carries: stand tall, shoulders back, walk with dumbbells at sides.",
+       mistake:"Letting shoulders round forward during carries.",
+       tip:"Grip as hard as possible throughout the set.",
+       beginnerAlt:"Shorter carry distance.",
+       advancedVar:"Heavier load, single-arm carry for core anti-lateral-flexion."}
+    ],
+    bodyweight: [
+      {name:"Dead Hang", sets:3, reps:"20–40 sec", rest:"60 sec", tempo:"hold",
+       form:"Hang from a bar with relaxed shoulders, full grip.",
+       mistake:"Shrugging shoulders to ears the whole time.",
+       tip:"Actively pull shoulder blades down slightly ('active hang') for part of the set.",
+       beginnerAlt:"Use a resistance band for foot support to reduce bodyweight.",
+       advancedVar:"One-arm dead hang for short intervals."}
+    ]
+  },
+  traps: {
+    gym: [
+      {name:"Barbell/DB Shrug", sets:3, reps:"12–15", rest:"60–90 sec", tempo:"2-1-1-1",
+       form:"Lift shoulders straight up toward ears, pause, lower with control.",
+       mistake:"Rolling shoulders in circles, which can irritate the joint.",
+       tip:"Straight up and down motion only, squeeze at the top.",
+       beginnerAlt:"Lighter dumbbells.",
+       advancedVar:"Pause shrug with 2-second hold at top."}
+    ],
+    home: [
+      {name:"Dumbbell Shrug", sets:3, reps:"12–15", rest:"60 sec", tempo:"2-1-1-1",
+       form:"Arms straight at sides, elevate shoulders directly upward.",
+       mistake:"Using the biceps to help lift.",
+       tip:"Keep a light bend in elbows, focus purely on the traps.",
+       beginnerAlt:"Lighter dumbbells or one arm at a time.",
+       advancedVar:"Slow 3-second lowering phase."}
+    ],
+    bodyweight: [
+      {name:"Band Shrug", sets:3, reps:"15–20", rest:"45–60 sec", tempo:"2-1-1-1",
+       form:"Stand on band, elevate shoulders straight up against tension.",
+       mistake:"Bending elbows to help lift.",
+       tip:"Choke up on the band for more resistance.",
+       beginnerAlt:"Lighter band.",
+       advancedVar:"Add a 2-second peak hold."}
+    ]
+  },
+  abs: {
+    gym: [
+      {name:"Cable Crunch", sets:3, reps:"12–15", rest:"60 sec", tempo:"2-0-1-1",
+       form:"Kneel below cable, curl torso down by flexing the spine, not pulling with arms.",
+       mistake:"Pulling with arms instead of crunching the spine.",
+       tip:"Exhale fully as you crunch down to deepen the contraction.",
+       beginnerAlt:"Bodyweight crunch instead.",
+       advancedVar:"Weighted decline sit-up."}
+    ],
+    home: [
+      {name:"Weighted Plank / Dumbbell Sit-Up", sets:3, reps:"30–45 sec or 12–15 reps", rest:"45–60 sec", tempo:"controlled",
+       form:"Plank: straight line, brace like being punched. Sit-up: control both directions.",
+       mistake:"Letting hips sag in plank or using momentum in sit-ups.",
+       tip:"Squeeze glutes during planks to protect the lower back.",
+       beginnerAlt:"Shorter hold time or knee plank.",
+       advancedVar:"Add a weight plate on the chest."}
+    ],
+    bodyweight: [
+      {name:"Plank / Bicycle Crunch", sets:3, reps:"30–45 sec or 15–20 reps", rest:"45–60 sec", tempo:"controlled",
+       form:"Plank: neutral spine, core braced. Bicycle: rotate elbow to opposite knee with control.",
+       mistake:"Rushing bicycle crunches without full rotation.",
+       tip:"Slow the tempo — abs respond well to controlled time under tension.",
+       beginnerAlt:"Dead bug variation for a gentler core intro.",
+       advancedVar:"Hollow body hold or hanging leg raise."}
+    ]
+  },
+  calves: {
+    gym: [
+      {name:"Standing/Seated Calf Raise", sets:4, reps:"12–20", rest:"45–60 sec", tempo:"2-1-1-1",
+       form:"Full stretch at bottom, rise onto toes, pause and squeeze at top.",
+       mistake:"Bouncing quickly without a full range of motion.",
+       tip:"Pause for 1–2 seconds at the top of every rep.",
+       beginnerAlt:"Bodyweight calf raise first.",
+       advancedVar:"Single-leg calf raise."}
+    ],
+    home: [
+      {name:"Dumbbell Calf Raise (step edge)", sets:4, reps:"15–20", rest:"45–60 sec", tempo:"2-1-1-1",
+       form:"Stand on a step, heels drop below edge, rise onto toes fully.",
+       mistake:"Not using a full range of motion.",
+       tip:"Hold a wall or rail for balance so you can focus on the calf contraction.",
+       beginnerAlt:"Both feet, no added weight.",
+       advancedVar:"Single-leg version with dumbbell."}
+    ],
+    bodyweight: [
+      {name:"Standing Calf Raise", sets:4, reps:"20–25", rest:"45 sec", tempo:"2-1-1-1",
+       form:"Rise onto toes as high as possible, lower with control past neutral.",
+       mistake:"Rushing through reps with tiny range of motion.",
+       tip:"Do these on a step for a deeper stretch at the bottom.",
+       beginnerAlt:"Both feet, hold onto wall for balance.",
+       advancedVar:"Single-leg calf raise, slow tempo."}
+    ]
+  }
+};
+
+/* Split day-type -> muscle group focus mapping */
+const DAY_FOCUS = {
+  "Full Body": ["chest","back","legs","shoulders","abs"],
+  "Push": ["chest","shoulders","triceps"],
+  "Pull": ["back","biceps","traps"],
+  "Legs": ["legs","glutes","calves"],
+  "Upper": ["chest","back","shoulders","biceps","triceps"],
+  "Lower": ["legs","glutes","calves","abs"],
+  "Chest & Triceps": ["chest","triceps"],
+  "Back & Biceps": ["back","biceps"],
+  "Shoulders & Traps": ["shoulders","traps"],
+  "Arms & Forearms": ["biceps","triceps","forearms"],
+  "Glutes & Core": ["glutes","abs","calves"]
+};
+
+function getSplitPlan(days, experience){
+  days = parseInt(days,10);
+  if(days <= 2) return {name:"Full Body", days:Array(days).fill("Full Body")};
+  if(days === 3){
+    if(experience === "beginner") return {name:"Full Body ×3", days:["Full Body","Full Body","Full Body"]};
+    return {name:"Push / Pull / Legs", days:["Push","Pull","Legs"]};
+  }
+  if(days === 4) return {name:"Upper / Lower", days:["Upper","Lower","Upper","Lower"]};
+  if(days === 5){
+    if(experience === "advanced") return {name:"Bro Split", days:["Chest & Triceps","Back & Biceps","Shoulders & Traps","Legs","Arms & Forearms"]};
+    return {name:"PPL + Upper/Lower", days:["Push","Pull","Legs","Upper","Lower"]};
+  }
+  return {name:"Push / Pull / Legs ×2", days:["Push","Pull","Legs","Push","Pull","Legs"]};
+}
+
+function pickExercises(muscle, equipment, count){
+  const bank = (EX[muscle] && (EX[muscle][equipment] || EX[muscle].bodyweight)) || [];
+  return bank.slice(0, count);
+}
+
+function buildWorkout(state){
+  const split = getSplitPlan(state.days, state.experience);
+  const perMuscleCount = state.time <= 30 ? 1 : (state.time <= 45 ? 2 : 2);
+  return split.days.map((focus, i) => {
+    const muscles = DAY_FOCUS[focus];
+    let exercises = [];
+    muscles.forEach(m => {
+      exercises = exercises.concat(pickExercises(m, state.equipment, perMuscleCount));
+    });
+    return {dayNum: i+1, focus, exercises};
+  }).map(d => ({...d, splitName: split.name}));
+}
+
+/* =========================================================
+   NUTRITION DATA — Indian-forward, adaptable meal library
+   ========================================================= */
+const MEALS = {
+  veg: {
+    breakfast: ["Vegetable poha with peanuts + a glass of milk","Besan chilla (2) with mint chutney + curd","Moong dal cheela with paneer stuffing","Oats porridge with milk, banana and almonds"],
+    lunch: ["2 roti + paneer bhurji + dal + salad","Rajma + brown rice + cucumber raita","Chole + 1 roti + salad + curd","Mixed vegetable + soya chunk curry + rice"],
+    dinner: ["Paneer tikka + sautéed vegetables + 1 roti","Dal tadka + roti + stir-fried greens","Vegetable khichdi with ghee + curd","Tofu/paneer stir-fry + quinoa"],
+    snacks: ["Roasted chana + fruit","Greek yogurt with nuts","Sprouts chaat","Boiled eggs are non-veg — swap for paneer cubes with chaat masala"],
+    pre: ["Banana with peanut butter","Handful of dates + black coffee","Poha or a small bowl of oats (60–90 min before)"],
+    post: ["Paneer bhurji + roti","Whey protein shake with banana","Greek yogurt with honey and fruit","Moong dal chilla"]
+  },
+  vegan: {
+    breakfast: ["Vegetable poha with peanuts (no ghee)","Tofu bhurji with vegetables","Oats with soy milk, chia seeds and banana","Moong dal cheela (oil, no dairy)"],
+    lunch: ["Chickpea curry + brown rice + salad","Rajma + roti (no ghee) + salad","Tofu + mixed vegetable curry + rice","Lentil soup + quinoa + steamed greens"],
+    dinner: ["Tofu stir-fry + quinoa","Dal tadka (no ghee) + roti + sautéed greens","Chickpea/vegetable khichdi","Tempeh or soy chunk curry + rice"],
+    snacks: ["Roasted chana", "Trail mix (nuts + seeds)","Fruit with peanut butter","Hummus with cucumber and carrot sticks"],
+    pre: ["Banana with peanut butter","Dates + black coffee","Small bowl of oats with soy milk"],
+    post: ["Soy/pea protein shake with banana","Tofu bhurji + roti","Lentil soup with quinoa","Roasted chickpeas + fruit"]
+  },
+  nonveg: {
+    breakfast: ["3 egg whites + 1 whole egg omelette + toast","Chicken sausage + oats","Boiled eggs (2–3) + fruit + milk","Egg bhurji with vegetables + roti"],
+    lunch: ["Grilled chicken breast + rice + dal + salad","Fish curry + brown rice + sautéed greens","Chicken curry + 1 roti + salad","Egg curry + rice + vegetables"],
+    dinner: ["Grilled fish/chicken + quinoa + vegetables","Chicken stir-fry + brown rice","Egg bhurji + roti + salad","Prawn curry + rice + greens"],
+    snacks: ["Boiled eggs + fruit","Greek yogurt with nuts","Roasted chana","Chicken tikka pieces"],
+    pre: ["Banana with peanut butter","Boiled egg + toast","Black coffee + dates"],
+    post: ["Whey protein shake + banana","Grilled chicken + rice","Egg whites + toast","Greek yogurt with honey"]
+  }
+};
+
+const HIGH_PROTEIN = {
+  veg: ["Paneer","Greek yogurt","Milk","Tofu","Lentils (dal)","Chickpeas","Rajma","Soy chunks","Quinoa","Nuts & seeds"],
+  vegan: ["Tofu","Tempeh","Lentils","Chickpeas","Rajma","Soy milk","Soy chunks","Quinoa","Peanut butter","Seitan"],
+  nonveg: ["Eggs","Chicken breast","Fish","Prawns","Paneer","Greek yogurt","Milk","Lentils","Chickpeas","Quinoa"]
+};
+
+function calcTargets(state){
+  const {age, gender, height, weight, activity, goal} = state;
+  let bmr = gender === "male"
+    ? 10*weight + 6.25*height - 5*age + 5
+    : 10*weight + 6.25*height - 5*age - 161;
+  const tdee = bmr * parseFloat(activity);
+
+  let calorieTarget, proteinPerKg, note;
+  switch(goal){
+    case "fatloss": calorieTarget = tdee * 0.80; proteinPerKg = 2.0; note="~20% calorie deficit for steady, sustainable fat loss (~0.5–0.75 kg/week)."; break;
+    case "musclegain": calorieTarget = tdee * 1.12; proteinPerKg = 1.8; note="~12% calorie surplus to support lean muscle gain while minimizing fat gain."; break;
+    case "strength": calorieTarget = tdee * 1.05; proteinPerKg = 1.8; note="Slight surplus to fuel heavy, progressive strength work."; break;
+    case "recomp": calorieTarget = tdee; proteinPerKg = 2.2; note="Calories at maintenance with high protein — build muscle and lose fat slowly at once."; break;
+    default: calorieTarget = tdee; proteinPerKg = 1.6; note="Calories at maintenance to support performance and general health.";
+  }
+  const protein = proteinPerKg * weight;
+  const fat = (calorieTarget * 0.25) / 9;
+  const carbs = (calorieTarget - (protein*4) - (fat*9)) / 4;
+  const bmi = weight / ((height/100)*(height/100));
+  const water = (weight * 0.035).toFixed(1);
+
+  return {
+    bmr: Math.round(bmr), tdee: Math.round(tdee), calorieTarget: Math.round(calorieTarget),
+    protein: Math.round(protein), fat: Math.round(fat), carbs: Math.round(carbs),
+    bmi: bmi.toFixed(1), water, note
+  };
+}
+
+/* =========================================================
+   FORM NAVIGATION
+   ========================================================= */
+let currentRound = 1;
+function updatePlateTrack(){
+  for(let i=1;i<=3;i++){
+    const p = document.getElementById('plate-'+i);
+    p.classList.remove('active','done');
+    if(i < currentRound) p.classList.add('done');
+    else if(i === currentRound) p.classList.add('active');
+  }
+  document.getElementById('plateLabel').textContent = "ROUND "+currentRound+" OF 3";
+}
+function showRound(n){
+  document.querySelectorAll('.round').forEach(r => {
+    r.style.display = (parseInt(r.dataset.round,10) === n) ? 'block' : 'none';
+  });
+  currentRound = n;
+  updatePlateTrack();
+}
+function nextRound(from){
+  if(from === 1){
+    const age = document.getElementById('age').value;
+    const height = document.getElementById('height').value;
+    const weight = document.getElementById('weight').value;
+    const err = document.getElementById('err1');
+    if(!age || !height || !weight){ err.style.display = 'block'; return; }
+    err.style.display = 'none';
+  }
+  showRound(from+1);
+  document.getElementById('assessment').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function prevRound(from){ showRound(from-1); }
+updatePlateTrack();
+
+/* =========================================================
+   FORM SUBMIT -> GENERATE PLAN
+   ========================================================= */
+document.getElementById('assessForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const state = {
+    age: parseFloat(document.getElementById('age').value) || 25,
+    gender: document.querySelector('input[name=gender]:checked').value,
+    height: parseFloat(document.getElementById('height').value) || 170,
+    weight: parseFloat(document.getElementById('weight').value) || 70,
+    goal: document.querySelector('input[name=goal]:checked').value,
+    activity: document.querySelector('input[name=activity]:checked').value,
+    experience: document.querySelector('input[name=experience]:checked').value,
+    equipment: document.querySelector('input[name=equipment]:checked').value,
+    diet: document.querySelector('input[name=diet]:checked').value,
+    allergies: document.getElementById('allergies').value.trim(),
+    days: document.getElementById('days').value,
+    time: parseInt(document.getElementById('time').value,10)
+  };
+  renderPlan(state);
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+});
+
+const GOAL_LABEL = {fatloss:"Fat loss", musclegain:"Muscle gain", strength:"Strength", recomp:"Body recomposition", general:"General fitness"};
+const DIET_LABEL = {veg:"Vegetarian", vegan:"Vegan", nonveg:"Non-vegetarian"};
+
+function renderPlan(state){
+  const t = calcTargets(state);
+  const split = getSplitPlan(state.days, state.experience);
+  const workout = buildWorkout(state);
+
+  document.getElementById('planTitle').textContent = GOAL_LABEL[state.goal] + " — " + split.name;
+
+  // Stat row
+  document.getElementById('statRow').innerHTML = `
+    <div class="stat"><div class="label">Calorie target</div><div class="num">${t.calorieTarget}<span class="unit">kcal/day</span></div></div>
+    <div class="stat"><div class="label">Protein</div><div class="num">${t.protein}<span class="unit">g/day</span></div></div>
+    <div class="stat"><div class="label">BMI</div><div class="num">${t.bmi}</div></div>
+    <div class="stat"><div class="label">Split</div><div class="num" style="font-size:18px;color:var(--recovery)">${split.name}</div></div>
+  `;
+
+  // Overview tab
+  let allergyNote = "";
+  if(state.allergies){
+    allergyNote = `<div class="disclaimer" style="margin-top:20px;"><strong>Noted:</strong> you mentioned "${escapeHtml(state.allergies)}". Swap any listed foods or exercises that conflict with this, and check with a healthcare professional if it involves an injury or diagnosed condition.</div>`;
+  }
+  document.getElementById('tab-overview').innerHTML = `
+    <div class="meal-card">
+      <h4>Metabolic snapshot</h4>
+      <table>
+        <tr><td>BMR (calories at rest)</td><td class="mono">${t.bmr} kcal</td></tr>
+        <tr><td>TDEE (maintenance calories)</td><td class="mono">${t.tdee} kcal</td></tr>
+        <tr><td>Daily calorie target</td><td class="mono">${t.calorieTarget} kcal</td></tr>
+        <tr><td>Protein</td><td class="mono">${t.protein} g</td></tr>
+        <tr><td>Carbohydrates</td><td class="mono">${t.carbs} g</td></tr>
+        <tr><td>Fat</td><td class="mono">${t.fat} g</td></tr>
+        <tr><td>Hydration target</td><td class="mono">${t.water} L/day (more on training days)</td></tr>
+      </table>
+      <p style="color:var(--muted);font-size:13px;margin-top:14px;">${t.note}</p>
+    </div>
+    ${allergyNote}
+    <div class="disclaimer">
+      <strong>Reminder:</strong> if you have a diagnosed medical condition, injury, or are pregnant, consult a qualified healthcare professional before starting this or any program.
+    </div>
+  `;
+
+  // Workout tab
+  document.getElementById('tab-workout').innerHTML = workout.map(d => `
+    <div class="day-card">
+      <div class="day-head">
+        <span class="name">Day ${d.dayNum}</span>
+        <span class="focus">${d.focus}</span>
+      </div>
+      <table>
+        <thead><tr><th>Exercise</th><th>Sets</th><th>Reps</th><th>Rest</th><th>Tempo</th></tr></thead>
+        <tbody>
+          ${d.exercises.map(ex => `<tr><td>${ex.name}</td><td class="mono">${ex.sets}</td><td class="mono">${ex.reps}</td><td class="mono">${ex.rest}</td><td class="mono">${ex.tempo}</td></tr>`).join('')}
+        </tbody>
+      </table>
+      ${d.exercises.map(ex => `
+        <details>
+          <summary>${ex.name} — form, mistakes &amp; variations</summary>
+          <div class="ex-detail">
+            <div><span class="k">Proper form</span>${ex.form}</div>
+            <div class="row2">
+              <div><span class="k">Common mistake</span>${ex.mistake}</div>
+              <div><span class="k">Coaching tip</span>${ex.tip}</div>
+            </div>
+            <div class="row2">
+              <div><span class="k">Beginner alternative</span>${ex.beginnerAlt}</div>
+              <div><span class="k">Advanced variation</span>${ex.advancedVar}</div>
+            </div>
+          </div>
+        </details>
+      `).join('')}
+    </div>
+  `).join('') + `<p style="color:var(--muted);font-size:13px;">Rest 1–2 full days between sessions hitting the same muscle group. Warm up with 5 minutes of light cardio plus 1–2 light warm-up sets before your first working set of each exercise.</p>`;
+
+  // Nutrition tab
+  const m = MEALS[state.diet];
+  document.getElementById('tab-nutrition').innerHTML = `
+    <div class="meal-card">
+      <h4>Sample day — ${DIET_LABEL[state.diet]}, ${GOAL_LABEL[state.goal]}</h4>
+      <table>
+        <tr><td style="width:140px;color:var(--muted);">Breakfast</td><td>${pick(m.breakfast)}</td></tr>
+        <tr><td style="color:var(--muted);">Lunch</td><td>${pick(m.lunch)}</td></tr>
+        <tr><td style="color:var(--muted);">Evening snack</td><td>${pick(m.snacks)}</td></tr>
+        <tr><td style="color:var(--muted);">Dinner</td><td>${pick(m.dinner)}</td></tr>
+      </table>
+    </div>
+    <div class="meal-card">
+      <h4>Pre-workout (60–90 min before)</h4>
+      <ul>${m.pre.map(x=>`<li>${x}</li>`).join('')}</ul>
+    </div>
+    <div class="meal-card">
+      <h4>Post-workout (within 60 min after)</h4>
+      <ul>${m.post.map(x=>`<li>${x}</li>`).join('')}</ul>
+      <p style="color:var(--muted);font-size:13px;margin-top:8px;">Aim for roughly ${Math.round(state.weight*0.3)}–${Math.round(state.weight*0.4)} g protein and a moderate portion of carbs in this meal to kick off recovery.</p>
+    </div>
+    <div class="meal-card">
+      <h4>High-protein foods to build meals around</h4>
+      <div class="food-chip-row">${HIGH_PROTEIN[state.diet].map(f=>`<span class="chip">${f}</span>`).join('')}</div>
+    </div>
+    <div class="meal-card">
+      <h4>Weekly structure tip</h4>
+      <p style="color:var(--chalk);font-size:14px;">Rotate the breakfast/lunch/dinner options above across the week so meals stay varied while calories and protein stay consistent. Batch-cook dal, rice/quinoa, and a protein source (paneer, tofu, chicken, or eggs) every 2–3 days to save time.</p>
+    </div>
+  `;
+
+  // Supplements tab
+  document.getElementById('tab-supplements').innerHTML = `
+    <div class="supp-grid">
+      <div class="supp-card"><span class="tag">Recovery</span><h4>Whey / Plant Protein</h4><p><strong>Use:</strong> convenient way to hit protein target.</p><p><strong>Dose:</strong> 20–30g per serving.</p><p><strong>Timing:</strong> anytime; post-workout is convenient, not mandatory.</p></div>
+      <div class="supp-card"><span class="tag">Strength</span><h4>Creatine Monohydrate</h4><p><strong>Use:</strong> improves strength and power output.</p><p><strong>Dose:</strong> 3–5g daily, any time of day.</p><p><strong>Note:</strong> most researched supplement for strength training; drink enough water.</p></div>
+      <div class="supp-card"><span class="tag">Foundation</span><h4>Multivitamin</h4><p><strong>Use:</strong> covers micronutrient gaps.</p><p><strong>Dose:</strong> per label, usually once daily with food.</p><p><strong>Note:</strong> not a replacement for whole foods.</p></div>
+      <div class="supp-card"><span class="tag">Health</span><h4>Omega-3 (Fish/Algae Oil)</h4><p><strong>Use:</strong> supports heart and joint health.</p><p><strong>Dose:</strong> 1–2g combined EPA/DHA daily with a meal.</p></div>
+      <div class="supp-card"><span class="tag">Health</span><h4>Vitamin D</h4><p><strong>Use:</strong> common deficiency with limited sun exposure.</p><p><strong>Dose:</strong> 1000–2000 IU daily, or as advised by a doctor after a blood test.</p></div>
+      <div class="supp-card"><span class="tag">Hydration</span><h4>Electrolytes</h4><p><strong>Use:</strong> helpful during long or hot, sweaty sessions.</p><p><strong>Timing:</strong> during/after intense or 60+ minute workouts.</p></div>
+      <div class="supp-card"><span class="tag">Performance</span><h4>Caffeine</h4><p><strong>Use:</strong> improves focus and performance.</p><p><strong>Dose:</strong> 100–200mg, 30–45 min pre-workout.</p><p><strong>Note:</strong> avoid late in the day if it affects sleep.</p></div>
+      <div class="supp-card"><span class="tag">Optional</span><h4>BCAAs</h4><p><strong>Use:</strong> largely unnecessary if total daily protein is adequate.</p><p><strong>Note:</strong> whole protein sources or whey cover this better in most cases.</p></div>
+    </div>
+    <div class="disclaimer" style="margin-top:20px;">
+      <strong>Supplements are optional.</strong> Whole foods should always be your primary source of nutrition — supplements fill small gaps, they don't replace meals. Check with a doctor before starting any supplement if you have a medical condition or take medication.
+    </div>
+  `;
+
+  // Progress tab
+  document.getElementById('tab-progress').innerHTML = `
+    <div class="meal-card">
+      <h4>Log a check-in</h4>
+      <div class="log-form">
+        <div class="field"><label for="logDate">Date</label><input type="text" id="logDate" placeholder="e.g. Week 1"></div>
+        <div class="field"><label for="logWeight">Weight (kg)</label><input type="number" id="logWeight" step="0.1"></div>
+        <div class="field"><label for="logNote">Note</label><input type="text" id="logNote" placeholder="energy, sleep, strength PRs..."></div>
+        <button class="btn small" type="button" onclick="addLog()">Add entry</button>
+      </div>
+      <table id="logTable">
+        <thead><tr><th>Date</th><th>Weight (kg)</th><th>Note</th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+      <p style="color:var(--muted);font-size:12px;margin-top:16px;">This log lives only in your current browser session — it resets on reload. Track weekly, at the same time of day, for the most reliable trend.</p>
+    </div>
+    <div class="meal-card">
+      <h4>What to track weekly</h4>
+      <ul>
+        <li>Body weight (same day/time each week — not daily, weight fluctuates naturally)</li>
+        <li>Key lift numbers (weight × reps on your main compound movements)</li>
+        <li>Workout consistency (sessions completed vs. planned)</li>
+        <li>Sleep hours and quality</li>
+        <li>How clothes fit / progress photos (optional, monthly)</li>
+      </ul>
+    </div>
+  `;
+  logEntries.length = 0;
+  renderLog();
+}
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* Tabs */
+document.addEventListener('click', function(e){
+  if(e.target.matches('.tab-btn')){
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById('tab-'+e.target.dataset.tab).classList.add('active');
+  }
+});
+
+/* Progress log (in-memory only, session-scoped) */
+let logEntries = [];
+function addLog(){
+  const date = document.getElementById('logDate').value || ('Entry '+(logEntries.length+1));
+  const weight = document.getElementById('logWeight').value || '—';
+  const note = document.getElementById('logNote').value || '';
+  logEntries.push({date, weight, note});
+  document.getElementById('logDate').value = '';
+  document.getElementById('logWeight').value = '';
+  document.getElementById('logNote').value = '';
+  renderLog();
+}
+function renderLog(){
+  const body = document.getElementById('logBody');
+  if(!body) return;
+  body.innerHTML = logEntries.map(e=>`<tr><td>${escapeHtml(e.date)}</td><td class="mono">${e.weight}</td><td>${escapeHtml(e.note)}</td></tr>`).join('');
+}
+</script>
+
+<script>
+/* =========================================================
+   FITNESS COMMUNITY HUB
+   Fully namespaced under CH — does not read or modify any
+   existing variables/functions from the assessment/workout/
+   nutrition code above. Persists to localStorage as one blob.
+   ========================================================= */
+const CH = (function(){
+  const STORE_KEY = 'chData_v1';
+
+  function uid(){ return 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+  function today(){ return new Date().toISOString().slice(0,10); }
+  function esc(s){ return typeof escapeHtml === 'function' ? escapeHtml(String(s||'')) : String(s||''); }
+  function fileToDataUrl(file, cb){
+    if(!file){ cb(null); return; }
+    const r = new FileReader();
+    r.onload = () => cb(r.result);
+    r.onerror = () => cb(null);
+    r.readAsDataURL(file);
+  }
+
+  const SEED_USERS = [
+    {id:'seed1',name:'Rhea Kapoor',city:'Mumbai',age:27,gender:'female',goal:'fatloss',experience:'advanced',skills:['Nutrition','Fat Loss'],bio:'Coach helping people lose fat sustainably.',followers:[],following:[],badges:['Nutrition Expert'],availability:'Evenings'},
+    {id:'seed2',name:'Vikram Singh',city:'Delhi',age:31,gender:'male',goal:'strength',experience:'advanced',skills:['Powerlifting','Strength'],bio:'Powerlifter, 5 years competitive.',followers:[],following:[],badges:['Coach'],availability:'Mornings'},
+    {id:'seed3',name:'Ananya Rao',city:'Bengaluru',age:24,gender:'female',goal:'recomp',experience:'intermediate',skills:['Yoga','Calisthenics'],bio:'Yoga + bodyweight training enthusiast.',followers:[],following:[],badges:['Calisthenics Master'],availability:'Flexible'},
+    {id:'seed4',name:'Karthik Iyer',city:'Vijayawada',age:29,gender:'male',goal:'musclegain',experience:'intermediate',skills:['Bodybuilding','Home Workouts'],bio:'Home-gym lifter, 3 years in.',followers:[],following:[],badges:['100 Workouts'],availability:'Weekends'},
+    {id:'seed5',name:'Priya Menon',city:'Hyderabad',age:22,gender:'female',goal:'fatloss',experience:'beginner',skills:['Marathon Training'],bio:'Training for my first half marathon.',followers:[],following:[],badges:[],availability:'Evenings'}
+  ];
+
+  let data = load();
+
+  function load(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      if(raw) return JSON.parse(raw);
+    }catch(e){}
+    return {currentUser:null, users:JSON.parse(JSON.stringify(SEED_USERS)), posts:[], questions:[], groups:[
+      {id:'g1',name:'Weight Loss Group',desc:'Support and tips for fat loss.',members:[]},
+      {id:'g2',name:'Muscle Gain Group',desc:'Bulking, hypertrophy, progressive overload.',members:[]},
+      {id:'g3',name:'Beginners',desc:'New to fitness? Start here.',members:[]}
+    ], challenges:[
+      {id:'c1',name:'30-Day Push-up Challenge',desc:'Do push-ups daily for 30 days.',participants:{}},
+      {id:'c2',name:'10,000 Steps Daily',desc:'Hit 10k steps every day this month.',participants:{}},
+      {id:'c3',name:'Plank Challenge',desc:'Increase your plank hold every day.',participants:{}}
+    ], messages:{}};
+  }
+  function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(data)); }catch(e){ console.error('CH storage error', e); } }
+
+  function me(){ return data.currentUser; }
+  function userById(id){ return data.users.find(u=>u.id===id); }
+
+  function badgesFor(u){
+    const b = new Set(u.badges||[]);
+    const postCount = data.posts.filter(p=>p.userId===u.id).length;
+    if(postCount>=1) b.add('Helpful Member');
+    if(postCount>=5) b.add('Transformation Hero');
+    return Array.from(b);
+  }
+
+  /* ---------------- ONBOARDING ---------------- */
+  function join(){
+    const name = document.getElementById('chName').value.trim();
+    if(!name){ alert('Please enter a display name.'); return; }
+    const city = document.getElementById('chCity').value.trim();
+    const age = document.getElementById('chAge').value;
+    const gender = document.querySelector('input[name=chGender]:checked').value;
+    const goal = document.querySelector('input[name=chGoal]:checked').value;
+    const skills = document.getElementById('chSkills').value.split(',').map(s=>s.trim()).filter(Boolean);
+    const u = {id:uid(), name, city, age, gender, goal, experience:'beginner', skills, bio:'', height:'', weight:'', followers:[], following:[], badges:[], availability:''};
+    data.users.push(u);
+    data.currentUser = u.id;
+    save();
+    boot();
+  }
+
+  function boot(){
+    if(!me()){
+      document.getElementById('chOnboard').style.display = '';
+      document.getElementById('chApp').style.display = 'none';
+      return;
+    }
+    document.getElementById('chOnboard').style.display = 'none';
+    document.getElementById('chApp').style.display = '';
+    renderAll();
+  }
+
+  function renderAll(){
+    renderFeed(); renderTransformations(); renderQuestions(); renderSkills();
+    renderPartners(); renderGroups(); renderChallenges(); renderLeaderboard();
+    renderChatUsers(); renderProfile();
+  }
+
+  /* ---------------- TABS ---------------- */
+  document.getElementById('chTabs').addEventListener('click', function(e){
+    if(!e.target.matches('.ch-tab-btn')) return;
+    document.querySelectorAll('.ch-tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.ch-tab-panel').forEach(p=>p.classList.remove('active'));
+    e.target.classList.add('active');
+    document.getElementById('ch-'+e.target.dataset.ch).classList.add('active');
+  });
+
+  /* ---------------- POSTS / FEED / TRANSFORMATIONS ---------------- */
+  function createPost(){
+    const caption = document.getElementById('chCaption').value.trim();
+    const beforeFile = document.getElementById('chBefore').files[0];
+    const afterFile = document.getElementById('chAfter').files[0];
+    const weightChange = document.getElementById('chWeightChange').value.trim();
+    const timeTaken = document.getElementById('chTimeTaken').value.trim();
+    if(!caption && !beforeFile && !afterFile){ alert('Add a caption or at least one photo.'); return; }
+    fileToDataUrl(beforeFile, beforeImg => {
+      fileToDataUrl(afterFile, afterImg => {
+        const u = userById(me());
+        data.posts.unshift({id:uid(), userId:u.id, caption, beforeImg, afterImg, weightChange, timeTaken, date:today(), likes:[], comments:[]});
+        save();
+        document.getElementById('chCaption').value=''; document.getElementById('chWeightChange').value=''; document.getElementById('chTimeTaken').value='';
+        document.getElementById('chBefore').value=''; document.getElementById('chAfter').value='';
+        renderFeed(); renderTransformations(); renderLeaderboard();
+      });
+    });
+  }
+
+  function postCard(p){
+    const u = userById(p.userId) || {name:'Deleted user'};
+    const liked = p.likes.includes(me());
+    const saved = (data.users.find(x=>x.id===me())||{}).bookmarks && data.users.find(x=>x.id===me()).bookmarks.includes(p.id);
+    let ba = '';
+    if(p.beforeImg || p.afterImg){
+      ba = `<div class="ch-ba">
+        <div>${p.beforeImg?`<img src="${p.beforeImg}">`:''}<div class="ch-ba-label">Before</div></div>
+        <div>${p.afterImg?`<img src="${p.afterImg}">`:''}<div class="ch-ba-label">After</div></div>
+      </div>`;
+    }
+    const meta = [p.weightChange, p.timeTaken].filter(Boolean).join(' · ');
+    return `<div class="ch-card">
+      <div class="ch-user-row"><div class="ch-avatar">${esc(u.name).charAt(0)}</div><div><div class="ch-username">${esc(u.name)}</div><div class="ch-meta">${p.date}</div></div></div>
+      ${p.caption?`<p style="font-size:14px;color:var(--chalk);">${esc(p.caption)}</p>`:''}
+      ${ba}
+      ${meta?`<div class="ch-meta">${esc(meta)}</div>`:''}
+      <div class="ch-actions">
+        <button class="ch-action ${liked?'liked':''}" onclick="CH.toggleLike('${p.id}')">♥ ${p.likes.length}</button>
+        <button class="ch-action" onclick="CH.toggleComments('${p.id}')">💬 ${p.comments.length}</button>
+        <button class="ch-action" onclick="CH.share('${p.id}')">↗ Share</button>
+        <button class="ch-action ${saved?'saved':''}" onclick="CH.toggleSave('${p.id}')">🔖 ${saved?'Saved':'Save'}</button>
+      </div>
+      <div class="ch-comments" id="chComments-${p.id}">
+        ${p.comments.map(c=>`<div class="ch-comment"><b>${esc(c.userName)}:</b> ${esc(c.text)}</div>`).join('')}
+        <div class="ch-inline-form"><input type="text" id="chCommentInput-${p.id}" placeholder="Add a comment..."><button class="btn small" type="button" onclick="CH.addComment('${p.id}')">Post</button></div>
+      </div>
+    </div>`;
+  }
+
+  function renderFeed(){
+    const el = document.getElementById('chFeedGrid');
+    el.innerHTML = data.posts.length ? data.posts.map(postCard).join('') : '<div class="ch-empty">No posts yet — be the first to share something.</div>';
+  }
+  function renderTransformations(){
+    const el = document.getElementById('chTransformGrid');
+    const list = data.posts.filter(p=>p.beforeImg && p.afterImg);
+    el.innerHTML = list.length ? list.map(postCard).join('') : '<div class="ch-empty">No transformations posted yet.</div>';
+  }
+  function toggleLike(id){
+    const p = data.posts.find(x=>x.id===id); if(!p) return;
+    const i = p.likes.indexOf(me());
+    if(i>-1) p.likes.splice(i,1); else p.likes.push(me());
+    save(); renderFeed(); renderTransformations(); renderLeaderboard();
+  }
+  function toggleComments(id){ document.getElementById('chComments-'+id).classList.toggle('open'); }
+  function addComment(id){
+    const input = document.getElementById('chCommentInput-'+id);
+    const text = input.value.trim(); if(!text) return;
+    const p = data.posts.find(x=>x.id===id);
+    p.comments.push({id:uid(), userId:me(), userName:userById(me()).name, text, date:today()});
+    input.value=''; save(); renderFeed(); renderTransformations();
+    document.getElementById('chComments-'+id).classList.add('open');
+  }
+  function share(id){
+    if(navigator.share){ navigator.share({title:'Check out this post', url:location.href+'#community'}); }
+    else{ alert('Share link copied (demo): '+location.href+'#community'); }
+  }
+  function toggleSave(id){
+    const u = userById(me());
+    u.bookmarks = u.bookmarks || [];
+    const i = u.bookmarks.indexOf(id);
+    if(i>-1) u.bookmarks.splice(i,1); else u.bookmarks.push(id);
+    save(); renderFeed(); renderTransformations(); renderProfile();
+  }
+
+  /* ---------------- ASK COMMUNITY ---------------- */
+  function askQuestion(){
+    const input = document.getElementById('chQuestion');
+    const text = input.value.trim(); if(!text) return;
+    data.questions.unshift({id:uid(), userId:me(), userName:userById(me()).name, text, date:today(), replies:[]});
+    input.value=''; save(); renderQuestions();
+  }
+  function renderQuestions(){
+    const el = document.getElementById('chQuestionList');
+    el.innerHTML = data.questions.length ? data.questions.map(q=>`
+      <div class="ch-card" style="margin-bottom:14px;">
+        <div class="ch-user-row"><div class="ch-avatar">${esc(q.userName).charAt(0)}</div><div><div class="ch-username">${esc(q.userName)}</div><div class="ch-meta">${q.date}</div></div></div>
+        <p style="font-size:14px;color:var(--chalk);">${esc(q.text)}</p>
+        <div class="ch-comments open">
+          ${q.replies.map(r=>`<div class="ch-comment"><b>${esc(r.userName)}:</b> ${esc(r.text)}</div>`).join('')}
+          <div class="ch-inline-form"><input type="text" id="chReply-${q.id}" placeholder="Write a reply..."><button class="btn small" type="button" onclick="CH.replyQuestion('${q.id}')">Reply</button></div>
+        </div>
+      </div>`).join('') : '<div class="ch-empty">No questions yet — ask the community something.</div>';
+  }
+  function replyQuestion(id){
+    const input = document.getElementById('chReply-'+id);
+    const text = input.value.trim(); if(!text) return;
+    const q = data.questions.find(x=>x.id===id);
+    q.replies.push({id:uid(), userId:me(), userName:userById(me()).name, text, date:today()});
+    save(); renderQuestions();
+  }
+
+  /* ---------------- SKILL EXCHANGE ---------------- */
+  function userCard(u, opts){
+    opts = opts||{};
+    const cur = userById(me());
+    const following = cur && cur.following && cur.following.includes(u.id);
+    const isMe = u.id === me();
+    return `<div class="ch-card">
+      <div class="ch-user-row"><div class="ch-avatar">${esc(u.name).charAt(0)}</div><div><div class="ch-username">${esc(u.name)}</div><div class="ch-meta">${esc(u.city||'')} ${u.age?'· '+u.age:''}</div></div></div>
+      ${u.bio?`<p style="font-size:13px;color:var(--muted);margin-bottom:8px;">${esc(u.bio)}</p>`:''}
+      ${(u.skills||[]).map(s=>`<span class="ch-skill-chip">${esc(s)}</span>`).join('')}
+      ${badgesFor(u).map(b=>`<span class="ch-badge">${esc(b)}</span>`).join('')}
+      <div class="ch-meta" style="margin-top:8px;">${u.experience||''} ${u.availability?' · '+esc(u.availability):''}</div>
+      <div class="ch-actions">
+        ${!isMe?`<button class="ch-action ${following?'liked':''}" onclick="CH.toggleFollow('${u.id}')">${following?'✓ Following':'+ Follow'}</button>`:''}
+        ${!isMe?`<button class="ch-action" onclick="CH.openChat('${u.id}')">✉ Message</button>`:''}
+      </div>
+    </div>`;
+  }
+  function renderSkills(){
+    document.getElementById('chSkillsGrid').innerHTML = data.users.map(u=>userCard(u)).join('');
+  }
+  function toggleFollow(id){
+    const cur = userById(me());
+    cur.following = cur.following||[];
+    const target = userById(id);
+    target.followers = target.followers||[];
+    const i = cur.following.indexOf(id);
+    if(i>-1){ cur.following.splice(i,1); target.followers.splice(target.followers.indexOf(me()),1); }
+    else { cur.following.push(id); target.followers.push(me()); }
+    save(); renderSkills(); renderPartners(); renderProfile();
+  }
+
+  /* ---------------- FIND PARTNER ---------------- */
+  function renderPartners(){
+    const city = (document.getElementById('chFCity').value||'').toLowerCase();
+    const goal = document.getElementById('chFGoal').value;
+    const exp = document.getElementById('chFExp').value;
+    const list = data.users.filter(u=>u.id!==me())
+      .filter(u=> !city || (u.city||'').toLowerCase().includes(city))
+      .filter(u=> !goal || u.goal===goal)
+      .filter(u=> !exp || u.experience===exp);
+    document.getElementById('chPartnerGrid').innerHTML = list.length ? list.map(u=>userCard(u)).join('') : '<div class="ch-empty">No matching partners. Try different filters.</div>';
+  }
+
+  /* ---------------- GROUPS ---------------- */
+  function createGroup(){
+    const name = document.getElementById('chGroupName').value.trim();
+    const desc = document.getElementById('chGroupDesc').value.trim();
+    if(!name) return;
+    data.groups.push({id:uid(), name, desc, members:[me()]});
+    document.getElementById('chGroupName').value=''; document.getElementById('chGroupDesc').value='';
+    save(); renderGroups();
+  }
+  function toggleGroupJoin(id){
+    const g = data.groups.find(x=>x.id===id);
+    const i = g.members.indexOf(me());
+    if(i>-1) g.members.splice(i,1); else g.members.push(me());
+    save(); renderGroups();
+  }
+  function renderGroups(){
+    document.getElementById('chGroupsGrid').innerHTML = data.groups.map(g=>{
+      const joined = g.members.includes(me());
+      return `<div class="ch-card">
+        <div class="ch-username">${esc(g.name)}</div>
+        <p style="font-size:13px;color:var(--muted);margin:6px 0;">${esc(g.desc)}</p>
+        <div class="ch-meta">${g.members.length} member${g.members.length===1?'':'s'}</div>
+        <div class="ch-actions"><button class="ch-action ${joined?'liked':''}" onclick="CH.toggleGroupJoin('${g.id}')">${joined?'✓ Joined':'+ Join group'}</button></div>
+      </div>`;
+    }).join('');
+  }
+
+  /* ---------------- CHALLENGES ---------------- */
+  function joinChallenge(id){
+    const c = data.challenges.find(x=>x.id===id);
+    if(!c.participants[me()]) c.participants[me()] = {checkins:[]};
+    save(); renderChallenges();
+  }
+  function checkIn(id){
+    const c = data.challenges.find(x=>x.id===id);
+    const p = c.participants[me()]; if(!p) return;
+    if(!p.checkins.includes(today())) p.checkins.push(today());
+    save(); renderChallenges(); renderLeaderboard();
+  }
+  function renderChallenges(){
+    document.getElementById('chChallengesGrid').innerHTML = data.challenges.map(c=>{
+      const joined = !!c.participants[me()];
+      const streak = joined ? c.participants[me()].checkins.length : 0;
+      const doneToday = joined && c.participants[me()].checkins.includes(today());
+      const total = Object.keys(c.participants).length;
+      return `<div class="ch-card">
+        <div class="ch-username">${esc(c.name)}</div>
+        <p style="font-size:13px;color:var(--muted);margin:6px 0;">${esc(c.desc)}</p>
+        <div class="ch-meta">${total} participant${total===1?'':'s'}${joined?' · your streak: '+streak+' day(s)':''}</div>
+        <div class="ch-actions">
+          ${!joined?`<button class="ch-action" onclick="CH.joinChallenge('${c.id}')">+ Join challenge</button>`
+            :`<button class="ch-action ${doneToday?'liked':''}" onclick="CH.checkIn('${c.id}')">${doneToday?'✓ Checked in today':'Check in today'}</button>`}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  /* ---------------- LEADERBOARD ---------------- */
+  function renderLeaderboard(){
+    const likesByUser = {};
+    data.posts.forEach(p=>{ likesByUser[p.userId] = (likesByUser[p.userId]||0) + p.likes.length; });
+    const ranked = data.users.map(u=>({u, score: (likesByUser[u.id]||0) + (u.followers?u.followers.length:0)}))
+      .sort((a,b)=>b.score-a.score).slice(0,10);
+    document.getElementById('chLeaderboardBox').innerHTML = `
+      <h4 style="font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:15px;letter-spacing:0.05em;margin-bottom:6px;">Weekly Leaderboard</h4>
+      ${ranked.map((r,i)=>`<div class="ch-lb-row"><span class="ch-lb-rank">#${i+1}</span><span style="flex:1;padding-left:10px;">${esc(r.u.name)}</span><span class="ch-meta">${r.score} pts</span></div>`).join('') || '<div class="ch-empty">No activity yet.</div>'}
+    `;
+  }
+
+  /* ---------------- MESSAGES ---------------- */
+  let activeChatId = null;
+  function convKey(a,b){ return [a,b].sort().join('__'); }
+  function openChat(id){
+    activeChatId = id;
+    document.querySelector('.ch-tab-btn[data-ch="messages"]').click();
+    renderChatUsers(); renderChatMsgs();
+  }
+  function renderChatUsers(){
+    const el = document.getElementById('chChatUsers');
+    const others = data.users.filter(u=>u.id!==me());
+    el.innerHTML = others.map(u=>`<div class="ch-chat-user ${u.id===activeChatId?'active':''}" onclick="CH.openChat('${u.id}')">${esc(u.name)}</div>`).join('');
+  }
+  function renderChatMsgs(){
+    const box = document.getElementById('chChatMsgs');
+    if(!activeChatId){ box.innerHTML = '<div class="ch-empty">Select a member to start chatting.</div>'; return; }
+    const key = convKey(me(), activeChatId);
+    const msgs = data.messages[key] || [];
+    box.innerHTML = msgs.map(m=>`<div class="ch-msg ${m.from===me()?'me':'them'}">${esc(m.text)}</div>`).join('') || '<div class="ch-empty">No messages yet — say hello.</div>';
+    box.scrollTop = box.scrollHeight;
+  }
+  function sendMessage(){
+    if(!activeChatId){ alert('Pick a member to message first.'); return; }
+    const input = document.getElementById('chMsgText');
+    const text = input.value.trim(); if(!text) return;
+    const key = convKey(me(), activeChatId);
+    data.messages[key] = data.messages[key] || [];
+    data.messages[key].push({from:me(), to:activeChatId, text, date:today()});
+    input.value=''; save(); renderChatMsgs();
+  }
+
+  /* ---------------- PROFILE ---------------- */
+  function renderProfile(){
+    const u = userById(me()); if(!u) return;
+    const myPosts = data.posts.filter(p=>p.userId===u.id);
+    const saved = (u.bookmarks||[]).map(id=>data.posts.find(p=>p.id===id)).filter(Boolean);
+    document.getElementById('chProfileBox').innerHTML = `
+      <div class="ch-user-row"><div class="ch-avatar" style="width:64px;height:64px;font-size:22px;">${esc(u.name).charAt(0)}</div>
+        <div><div class="ch-username" style="font-size:18px;">${esc(u.name)}</div><div class="ch-meta">${esc(u.city||'')} · ${u.experience||'beginner'}</div></div></div>
+      <div class="field-grid" style="margin-top:16px;">
+        <div class="field"><label>Bio</label><textarea id="chBio">${esc(u.bio||'')}</textarea></div>
+        <div class="field"><label>Height (cm)</label><input type="number" id="chHeight" value="${esc(u.height||'')}"></div>
+        <div class="field"><label>Weight (kg)</label><input type="number" id="chWeight" value="${esc(u.weight||'')}"></div>
+      </div>
+      <div class="form-nav"><span></span><button class="btn small" type="button" onclick="CH.saveProfile()">Save profile</button></div>
+      <div class="stat-row" style="margin-top:20px;">
+        <div class="stat"><div class="label">Posts</div><div class="num" style="font-size:20px;">${myPosts.length}</div></div>
+        <div class="stat"><div class="label">Followers</div><div class="num" style="font-size:20px;">${(u.followers||[]).length}</div></div>
+        <div class="stat"><div class="label">Following</div><div class="num" style="font-size:20px;">${(u.following||[]).length}</div></div>
+        <div class="stat"><div class="label">Badges</div><div class="num" style="font-size:20px;">${badgesFor(u).length}</div></div>
+      </div>
+      <div style="margin-top:14px;">${badgesFor(u).map(b=>`<span class="ch-badge">${esc(b)}</span>`).join('')}</div>
+      <h4 style="font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:14px;letter-spacing:0.05em;margin:22px 0 10px;">Your gallery</h4>
+      <div class="ch-grid">${myPosts.length ? myPosts.map(postCard).join('') : '<div class="ch-empty">No posts yet.</div>'}</div>
+      <h4 style="font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:14px;letter-spacing:0.05em;margin:22px 0 10px;">Saved posts</h4>
+      <div class="ch-grid">${saved.length ? saved.map(postCard).join('') : '<div class="ch-empty">Nothing saved yet.</div>'}</div>
+    `;
+  }
+  function saveProfile(){
+    const u = userById(me());
+    u.bio = document.getElementById('chBio').value;
+    u.height = document.getElementById('chHeight').value;
+    u.weight = document.getElementById('chWeight').value;
+    save(); renderProfile();
+  }
+
+  document.addEventListener('DOMContentLoaded', boot);
+  if(document.readyState !== 'loading') boot();
+
+  return {join, createPost, toggleLike, toggleComments, addComment, share, toggleSave,
+    askQuestion, replyQuestion, toggleFollow, renderPartners, createGroup, toggleGroupJoin,
+    joinChallenge, checkIn, openChat, sendMessage, saveProfile};
+})();
+</script>
+</body>
+</html>
