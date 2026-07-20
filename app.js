@@ -517,6 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* =========================================================
    FORM SUBMIT -> GENERATE PLAN
    ========================================================= */
+let activeState = null; // Holds calculations state globally
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('assessForm');
   if(form) {
@@ -536,6 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
         days: document.getElementById('days').value,
         time: parseInt(document.getElementById('time').value,10)
       };
+      activeState = state;
       renderPlan(state);
       document.getElementById('results').style.display = 'block';
       document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
@@ -561,7 +563,20 @@ function renderPlan(state){
     <div class="stat animate-fade-up" style="animation-delay: 0.3s"><div class="label">Split</div><div class="num" style="font-size:18px;color:var(--color-success)">${split.name}</div></div>
   `;
 
-  // Overview tab
+  // Dynamic Heart Rate Zones Calculation
+  const maxHR = 220 - state.age;
+  const hrZones = {
+    z1: { min: Math.round(maxHR * 0.5), max: Math.round(maxHR * 0.6) }, // Warm up
+    z2: { min: Math.round(maxHR * 0.6), max: Math.round(maxHR * 0.7) }, // Fat Burn
+    z3: { min: Math.round(maxHR * 0.7), max: Math.round(maxHR * 0.8) }, // Cardio
+    z4: { min: Math.round(maxHR * 0.8), max: Math.round(maxHR * 0.9) }  // Peak
+  };
+
+  // Dynamic Water Logger Variables
+  const targetGlasses = Math.round(t.water * 4); // 250ml per glass
+  const savedWaterCount = parseInt(localStorage.getItem(`water_log_${today()}`) || '0', 10);
+
+  // Overview tab HTML
   let allergyNote = "";
   if(state.allergies){
     allergyNote = `<div class="disclaimer" style="margin-top:20px;"><strong>Noted:</strong> you mentioned "${escapeHtml(state.allergies)}". Swap any listed foods or exercises that conflict with this, and check with a healthcare professional if it involves an injury or diagnosed condition.</div>`;
@@ -580,13 +595,58 @@ function renderPlan(state){
       </table>
       <p style="color:var(--text-secondary);font-size:13px;margin-top:14px;">${t.note}</p>
     </div>
+
+    <!-- HEART RATE ZONE WIDGET -->
+    <div class="meal-card">
+      <h4>Heart Rate Training Zones</h4>
+      <p style="color:var(--text-secondary);font-size:13px;margin-bottom:14px;">Optimized targets based on your age (${state.age}):</p>
+      <div class="hr-zone-grid">
+        <div class="hr-zone-card z1">
+          <h5>Zone 1: Warm Up (50-60%)</h5>
+          <p>Mobility & Active recovery</p>
+          <div class="bpm">${hrZones.z1.min} – ${hrZones.z1.max} BPM</div>
+        </div>
+        <div class="hr-zone-card z2">
+          <h5>Zone 2: Fat Burn (60-70%)</h5>
+          <p>Aerobic base development</p>
+          <div class="bpm">${hrZones.z2.min} – ${hrZones.z2.max} BPM</div>
+        </div>
+        <div class="hr-zone-card z3">
+          <h5>Zone 3: Cardio (70-80%)</h5>
+          <p>Aerobic endurance & capacity</p>
+          <div class="bpm">${hrZones.z3.min} – ${hrZones.z3.max} BPM</div>
+        </div>
+        <div class="hr-zone-card z4">
+          <h5>Zone 4: Peak (80-90%)</h5>
+          <p>Anaerobic speed & power</p>
+          <div class="bpm">${hrZones.z4.min} – ${hrZones.z4.max} BPM</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WATER LOGGER WIDGET -->
+    <div class="meal-card">
+      <h4>Daily Hydration Logger</h4>
+      <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px;">Aim for ${t.water} L (${targetGlasses} glasses of 250ml each). Click on glasses to log consumption:</p>
+      <div class="water-tracker-container">
+        <div class="water-glasses" id="waterGlassesGrid"></div>
+        <div style="font-size: 14px; font-weight: 600;" id="waterCountLabel">${savedWaterCount} / ${targetGlasses} glasses</div>
+        <div class="water-progress-bar">
+          <div class="water-progress-fill" id="waterProgressFill"></div>
+        </div>
+      </div>
+    </div>
+
     ${allergyNote}
     <div class="disclaimer">
       <strong>Reminder:</strong> if you have a diagnosed medical condition, injury, or are pregnant, consult a qualified healthcare professional before starting this or any program.
     </div>
   `;
 
-  // Workout tab
+  // Draw initial water glasses
+  drawWaterTracker(savedWaterCount, targetGlasses);
+
+  // Workout tab HTML
   document.getElementById('tab-workout').innerHTML = workout.map(d => `
     <div class="day-card">
       <div class="day-head">
@@ -618,7 +678,7 @@ function renderPlan(state){
     </div>
   `).join('') + `<p style="color:var(--text-muted);font-size:13px;">Rest 1–2 full days between sessions hitting the same muscle group. Warm up with 5 minutes of light cardio plus 1–2 light warm-up sets before your first working set of each exercise.</p>`;
 
-  // Nutrition tab
+  // Nutrition tab HTML
   const m = MEALS[state.diet];
   document.getElementById('tab-nutrition').innerHTML = `
     <div class="meal-card">
@@ -649,7 +709,7 @@ function renderPlan(state){
     </div>
   `;
 
-  // Supplements tab
+  // Supplements tab HTML
   document.getElementById('tab-supplements').innerHTML = `
     <div class="supp-grid">
       <div class="supp-card"><span class="tag">Recovery</span><h4>Whey / Plant Protein</h4><p><strong>Use:</strong> convenient way to hit protein target.</p><p><strong>Dose:</strong> 20–30g per serving.</p><p><strong>Timing:</strong> anytime; post-workout is convenient, not mandatory.</p></div>
@@ -666,8 +726,17 @@ function renderPlan(state){
     </div>
   `;
 
-  // Progress tab
+  // Progress tab HTML
   document.getElementById('tab-progress').innerHTML = `
+    <!-- WEEKLY WORKOUT TRACKER CALENDAR -->
+    <div class="meal-card animate-fade-up">
+      <h4>Weekly Workout Tracker Checklist</h4>
+      <p style="color:var(--text-secondary);font-size:13px;margin-bottom:12px;">Check off days when you complete a workout to build your weekly streak:</p>
+      <div class="workout-calendar-grid" id="weeklyWorkoutGrid"></div>
+      <div style="margin-top: 16px; font-size: 14px; font-weight: 600;" id="workoutStreakLabel">Streaks logged this week: 0 days</div>
+    </div>
+
+    <!-- LOG ENTRIES -->
     <div class="meal-card">
       <h4>Log a check-in</h4>
       <div class="log-form">
@@ -693,10 +762,102 @@ function renderPlan(state){
       </ul>
     </div>
   `;
+
+  // Draw initial workout tracker days
+  drawWorkoutTracker();
+
   logEntries.length = 0;
   renderLog();
 }
 
+/* =========================================================
+   NEW FEATURE FUNCTIONS
+   ========================================================= */
+
+// 1. Water Intake Logger
+function drawWaterTracker(current, target) {
+  const grid = document.getElementById('waterGlassesGrid');
+  if(!grid) return;
+  
+  let html = '';
+  for(let i = 1; i <= target; i++) {
+    const activeClass = i <= current ? 'active' : '';
+    html += `<div class="water-glass ${activeClass}" onclick="toggleWaterGlass(${i})"></div>`;
+  }
+  grid.innerHTML = html;
+  
+  // Fill progress bar
+  const progressPercent = Math.min((current / target) * 100, 100);
+  const fill = document.getElementById('waterProgressFill');
+  if(fill) fill.style.width = `${progressPercent}%`;
+}
+
+window.toggleWaterGlass = function(index) {
+  if(!activeState) return;
+  const t = calcTargets(activeState);
+  const target = Math.round(t.water * 4);
+  const dateKey = `water_log_${today()}`;
+  let current = parseInt(localStorage.getItem(dateKey) || '0', 10);
+  
+  // Toggle glass count
+  if(index === current) {
+    current = index - 1; // back down
+  } else {
+    current = index; // advance
+  }
+  if(current < 0) current = 0;
+  
+  localStorage.setItem(dateKey, current);
+  
+  // Update labels
+  const label = document.getElementById('waterCountLabel');
+  if(label) label.textContent = `${current} / ${target} glasses`;
+  
+  drawWaterTracker(current, target);
+};
+
+// 2. Weekly Workout Tracker
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+function drawWorkoutTracker() {
+  const grid = document.getElementById('weeklyWorkoutGrid');
+  if(!grid) return;
+
+  const currentChecks = JSON.parse(localStorage.getItem('workoutStreak_v1') || '[]');
+  
+  let html = '';
+  WEEKDAYS.forEach(day => {
+    const isCompleted = currentChecks.includes(day);
+    const completedClass = isCompleted ? 'completed' : '';
+    html += `
+      <div class="workout-day-box ${completedClass}" onclick="toggleWorkoutDay('${day}')">
+        <div class="day-name">${day}</div>
+        <div class="check-indicator"></div>
+      </div>
+    `;
+  });
+  grid.innerHTML = html;
+  
+  // Update streak count
+  const label = document.getElementById('workoutStreakLabel');
+  if(label) label.textContent = `Completed workouts this week: ${currentChecks.length} day(s)`;
+}
+
+window.toggleWorkoutDay = function(day) {
+  let currentChecks = JSON.parse(localStorage.getItem('workoutStreak_v1') || '[]');
+  const index = currentChecks.indexOf(day);
+  if(index > -1) {
+    currentChecks.splice(index, 1); // remove
+  } else {
+    currentChecks.push(day); // add
+  }
+  
+  localStorage.setItem('workoutStreak_v1', JSON.stringify(currentChecks));
+  drawWorkoutTracker();
+};
+
+
+/* Standard pick/escape functions */
 function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
@@ -710,7 +871,7 @@ document.addEventListener('click', function(e){
   }
 });
 
-/* Progress log (in-memory only, session-scoped) */
+/* Progress log */
 let logEntries = [];
 function addLog(){
   const date = document.getElementById('logDate').value || ('Entry '+(logEntries.length+1));
@@ -728,17 +889,16 @@ function renderLog(){
   body.innerHTML = logEntries.map(e=>`<tr><td>${escapeHtml(e.date)}</td><td class="mono">${e.weight}</td><td>${escapeHtml(e.note)}</td></tr>`).join('');
 }
 
+function today(){ return new Date().toISOString().slice(0,10); }
+
 /* =========================================================
    FITNESS COMMUNITY HUB
-   Fully namespaced under CH — does not read or modify any
-   existing variables/functions from the assessment/workout/
-   nutrition code above. Persists to localStorage as one blob.
    ========================================================= */
 const CH = (function(){
   const STORE_KEY = 'chData_v1';
 
   function uid(){ return 'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
-  function today(){ return new Date().toISOString().slice(0,10); }
+  function todayDate(){ return today(); }
   function esc(s){ return typeof escapeHtml === 'function' ? escapeHtml(String(s||'')) : String(s||''); }
   
   function fileToDataUrl(file, cb){
@@ -854,7 +1014,7 @@ const CH = (function(){
     fileToDataUrl(beforeFile, beforeImg => {
       fileToDataUrl(afterFile, afterImg => {
         const u = userById(me());
-        data.posts.unshift({id:uid(), userId:u.id, caption, beforeImg, afterImg, weightChange, timeTaken, date:today(), likes:[], comments:[]});
+        data.posts.unshift({id:uid(), userId:u.id, caption, beforeImg, afterImg, weightChange, timeTaken, date:todayDate(), likes:[], comments:[]});
         save();
         document.getElementById('chCaption').value=''; document.getElementById('chWeightChange').value=''; document.getElementById('chTimeTaken').value='';
         document.getElementById('chBefore').value=''; document.getElementById('chAfter').value='';
@@ -924,7 +1084,7 @@ const CH = (function(){
     const input = document.getElementById('chCommentInput-'+id);
     const text = input.value.trim(); if(!text) return;
     const p = data.posts.find(x=>x.id===id);
-    p.comments.push({id:uid(), userId:me(), userName:userById(me()).name, text, date:today()});
+    p.comments.push({id:uid(), userId:me(), userName:userById(me()).name, text, date:todayDate()});
     input.value=''; save(); renderFeed(); renderTransformations();
     document.getElementById('chComments-'+id).classList.add('open');
   }
@@ -949,7 +1109,7 @@ const CH = (function(){
   function askQuestion(){
     const input = document.getElementById('chQuestion');
     const text = input.value.trim(); if(!text) return;
-    data.questions.unshift({id:uid(), userId:me(), userName:userById(me()).name, text, date:today(), replies:[]});
+    data.questions.unshift({id:uid(), userId:me(), userName:userById(me()).name, text, date:todayDate(), replies:[]});
     input.value=''; save(); renderQuestions();
   }
 
@@ -972,7 +1132,7 @@ const CH = (function(){
     const input = document.getElementById('chReply-'+id);
     const text = input.value.trim(); if(!text) return;
     const q = data.questions.find(x=>x.id===id);
-    q.replies.push({id:uid(), userId:me(), userName:userById(me()).name, text, date:today()});
+    q.replies.push({id:uid(), userId:me(), userName:userById(me()).name, text, date:todayDate()});
     input.value=''; save(); renderQuestions();
   }
 
@@ -1001,6 +1161,7 @@ const CH = (function(){
     }
   }
 
+  // Toggle follow
   function toggleFollow(id){
     const cur = userById(me());
     cur.following = cur.following||[];
@@ -1080,7 +1241,7 @@ const CH = (function(){
   function checkIn(id){
     const c = data.challenges.find(x=>x.id===id);
     const p = c.participants[me()]; if(!p) return;
-    if(!p.checkins.includes(today())) p.checkins.push(today());
+    if(!p.checkins.includes(todayDate())) p.checkins.push(todayDate());
     save(); renderChallenges(); renderLeaderboard();
   }
 
@@ -1090,7 +1251,7 @@ const CH = (function(){
       el.innerHTML = data.challenges.map(c=>{
         const joined = !!c.participants[me()];
         const streak = joined ? c.participants[me()].checkins.length : 0;
-        const doneToday = joined && c.participants[me()].checkins.includes(today());
+        const doneToday = joined && c.participants[me()].checkins.includes(todayDate());
         const total = Object.keys(c.participants).length;
         return `<div class="ch-card">
           <div class="ch-username">${esc(c.name)}</div>
@@ -1155,7 +1316,7 @@ const CH = (function(){
     const text = input.value.trim(); if(!text) return;
     const key = convKey(me(), activeChatId);
     data.messages[key] = data.messages[key] || [];
-    data.messages[key].push({from:me(), to:activeChatId, text, date:today()});
+    data.messages[key].push({from:me(), to:activeChatId, text, date:todayDate()});
     input.value=''; save(); renderChatMsgs();
   }
 
