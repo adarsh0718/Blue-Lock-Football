@@ -274,84 +274,64 @@ function show_infobox() {
            border: 1px solid black;
         }
 
-        /* ── MOBILE VIRTUAL GAMEPAD ─────────────────────────────────── */
+        /* ── MOBILE VIRTUAL GAMEPAD & FULLSCREEN OVERLAY ── */
         #gamepad {
-            display: none; /* hidden on desktop */
+            display: none;
             position: fixed;
             bottom: 0; left: 0; right: 0;
-            height: 200px;
+            height: 180px;
             z-index: 9999;
             pointer-events: none;
             user-select: none;
             -webkit-user-select: none;
         }
 
-        /* Show only on touch-capable screens */
-        @media (hover: none) and (pointer: coarse) {
-            #gamepad { display: flex; justify-content: space-between; align-items: flex-end; padding: 12px 20px; }
+        @media (hover: none) and (pointer: coarse), (max-width: 900px) {
+            #gamepad { display: flex; justify-content: space-between; align-items: flex-end; padding: 10px 16px; }
+            #btn-fullscreen { display: flex !important; }
+            #btn-menu { display: flex !important; }
         }
 
-        /* ── LEFT JOYSTICK ── */
+        /* Joystick */
         #joystick-zone {
             pointer-events: all;
             position: relative;
-            width: 140px;
-            height: 140px;
+            width: 130px;
+            height: 130px;
             flex-shrink: 0;
         }
         #joystick-base {
-            width: 140px;
-            height: 140px;
+            width: 130px;
+            height: 130px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.12);
-            border: 2px solid rgba(255,255,255,0.35);
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.4);
             position: absolute;
             top: 0; left: 0;
-            display: grid;
-            grid-template-columns: repeat(3,1fr);
-            grid-template-rows: repeat(3,1fr);
         }
-        /* D-pad arrow indicators */
-        #joystick-base::before {
-            content: '▲';
-            position: absolute;
-            top: 4px; left: 50%;
-            transform: translateX(-50%);
-            color: rgba(255,255,255,0.5);
-            font-size: 16px;
-        }
-        #joystick-base::after {
-            content: '▼';
-            position: absolute;
-            bottom: 4px; left: 50%;
-            transform: translateX(-50%);
-            color: rgba(255,255,255,0.5);
-            font-size: 16px;
-        }
+        #joystick-base::before { content: '▲'; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.6); font-size: 14px; }
+        #joystick-base::after { content: '▼'; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.6); font-size: 14px; }
         #joystick-knob {
-            width: 54px;
-            height: 54px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.9), rgba(200,200,200,0.6));
+            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.95), rgba(200,200,200,0.7));
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            transition: none;
         }
 
-        /* ── RIGHT ACTION BUTTONS ── */
+        /* Action Buttons */
         #action-zone {
             pointer-events: all;
             position: relative;
-            width: 160px;
-            height: 140px;
+            width: 170px;
+            height: 130px;
             flex-shrink: 0;
         }
         .gp-btn {
             position: absolute;
-            width: 52px;
-            height: 52px;
             border-radius: 50%;
             border: 2px solid rgba(255,255,255,0.4);
             display: flex;
@@ -366,53 +346,43 @@ function show_infobox() {
             cursor: pointer;
             touch-action: none;
             -webkit-tap-highlight-color: transparent;
+            text-align: center;
         }
-        /* Sprint — bottom left of action cluster */
-        #btn-sprint {
-            background: radial-gradient(circle at 35% 35%, #4a9eff, #1a4a8f);
-            bottom: 0; left: 0;
-        }
-        /* Pass — top left */
-        #btn-pass {
-            background: radial-gradient(circle at 35% 35%, #f0c040, #a07010);
-            top: 0; left: 30px;
-        }
-        /* Shoot — right middle (hold = charge) */
-        #btn-shoot {
-            background: radial-gradient(circle at 35% 35%, #ff6040, #8f1a1a);
-            top: 44px; right: 0;
-            width: 60px; height: 60px;
-            font-size: 11px;
-        }
-        /* ESC / Menu */
-        #btn-menu {
+        #btn-sprint { background: radial-gradient(circle at 35% 35%, #4a9eff, #1a4a8f); width: 48px; height: 48px; bottom: 0; left: 0; }
+        #btn-pass { background: radial-gradient(circle at 35% 35%, #f0c040, #a07010); width: 48px; height: 48px; top: 0; left: 35px; }
+        #btn-shoot { background: radial-gradient(circle at 35% 35%, #ff6040, #8f1a1a); width: 56px; height: 56px; top: 35px; right: 0; font-size: 11px; }
+        #btn-start { background: radial-gradient(circle at 35% 35%, #2ecc71, #1e8449); width: 50px; height: 50px; bottom: 0; left: 58px; font-size: 10px; }
+
+        /* Top control buttons */
+        .top-btn {
             position: fixed;
-            top: 10px; right: 10px;
-            width: 44px; height: 44px;
+            top: 10px;
+            height: 38px;
             border-radius: 8px;
-            background: rgba(0,0,0,0.55);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: rgba(255,255,255,0.8);
-            font-size: 10px;
+            background: rgba(0,0,0,0.65);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: #fff;
+            font-size: 11px;
             font-family: Georgia, serif;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
             z-index: 10000;
             pointer-events: all;
-            display: none;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
         }
-        @media (hover: none) and (pointer: coarse) {
-            #btn-menu { display: flex; }
-        }
+        #btn-fullscreen { right: 10px; }
+        #btn-menu { right: 115px; }
 
-        /* ── GAME CANVAS: shrink to leave room for gamepad on mobile ── */
-        @media (hover: none) and (pointer: coarse) {
+        @media (hover: none) and (pointer: coarse), (max-width: 900px) {
             canvas.emscripten {
-                height: calc(100% - 200px) !important;
-                bottom: 200px !important;
+                height: calc(100% - 180px) !important;
+                bottom: 180px !important;
             }
         }
     </style>
-
 
     <script>
 /*
@@ -571,54 +541,57 @@ frameborder="1"
         window.frames["iframe"].location = url;
     }
 
-    </script>
+    <!-- ── TOP MOBILE CONTROLS ── -->
+    <div class="top-btn" id="btn-fullscreen" onclick="toggleFullscreen()">⛶ FULLSCREEN</div>
+    <div class="top-btn" id="btn-menu">☰ MENU</div>
 
-
-    <!-- ── MOBILE VIRTUAL GAMEPAD HTML ───────────────────────────── -->
+    <!-- ── MOBILE VIRTUAL GAMEPAD HTML ── -->
     <div id="gamepad">
-        <!-- Left: Joystick -->
         <div id="joystick-zone">
             <div id="joystick-base">
                 <div id="joystick-knob"></div>
             </div>
         </div>
 
-        <!-- Middle: Labels -->
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:8px;pointer-events:none;">
             <span style="color:rgba(255,255,255,0.4);font-size:9px;font-family:Georgia,serif;letter-spacing:1px;">BLUE LOCK</span>
         </div>
 
-        <!-- Right: Action Buttons -->
         <div id="action-zone">
             <div class="gp-btn" id="btn-sprint">⚡<br>SPRINT</div>
             <div class="gp-btn" id="btn-pass">🎯<br>PASS</div>
+            <div class="gp-btn" id="btn-start">▶<br>START</div>
             <div class="gp-btn" id="btn-shoot">🔥<br>SHOOT</div>
         </div>
     </div>
 
-    <!-- ESC/Menu button always visible on mobile -->
-    <div id="btn-menu">☰<br>MENU</div>
-
     <script type="application/javascript">
     // ═══════════════════════════════════════════════════════════════
-    //  MOBILE VIRTUAL GAMEPAD — Touch → Keyboard Event Bridge
-    //  Maps joystick + buttons to keyboard events pygame reads
+    //  MOBILE GAMEPAD & FULLSCREEN CONTROLLER
     // ═══════════════════════════════════════════════════════════════
 
-    const KEY_CODES = {
-        w: 'KeyW', a: 'KeyA', s: 'KeyS', d: 'KeyD',
-        f: 'KeyF', g: 'KeyG',
-        ShiftLeft: 'ShiftLeft',
-        Escape: 'Escape'
-    };
+    // Fullscreen API toggle
+    function toggleFullscreen() {
+        const doc = document.documentElement;
+        if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+            if (doc.requestFullscreen) { doc.requestFullscreen(); }
+            else if (doc.webkitRequestFullscreen) { doc.webkitRequestFullscreen(); }
+            else if (doc.mozRequestFullScreen) { doc.mozRequestFullScreen(); }
+            else if (doc.msRequestFullscreen) { doc.msRequestFullscreen(); }
+        } else {
+            if (document.exitFullscreen) { document.exitFullscreen(); }
+            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+            else if (document.mozCancelFullScreen) { document.mozCancelFullScreen(); }
+            else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+        }
+    }
 
-    // Track which keys are currently "held"
     const heldKeys = new Set();
 
     function fireKey(code, key, down) {
         const type = down ? 'keydown' : 'keyup';
-        if (down && heldKeys.has(code)) return;   // already held, skip repeat
-        if (!down && !heldKeys.has(code)) return;  // already released
+        if (down && heldKeys.has(code)) return;
+        if (!down && !heldKeys.has(code)) return;
 
         if (down) heldKeys.add(code); else heldKeys.delete(code);
 
@@ -633,20 +606,13 @@ frameborder="1"
         target.dispatchEvent(evt);
     }
 
-    function releaseAll() {
-        [...heldKeys].forEach(code => {
-            const key = code.replace('Key','').replace('Shift','Shift').replace('Escape','Escape');
-            fireKey(code, key, false);
-        });
-    }
-
-    // ── JOYSTICK ────────────────────────────────────────────────────
+    // Joystick
     const joystickZone = document.getElementById('joystick-zone');
     const joystickBase = document.getElementById('joystick-base');
     const joystickKnob = document.getElementById('joystick-knob');
 
-    const JOYSTICK_RADIUS = 70;  // half of 140px base
-    const KNOB_DEADZONE   = 18;  // px threshold before registering direction
+    const JOYSTICK_RADIUS = 65;
+    const KNOB_DEADZONE   = 16;
     let joystickActive = false;
     let joystickOriginX = 0, joystickOriginY = 0;
     let joystickTouchId = null;
@@ -667,17 +633,13 @@ frameborder="1"
         let dy = clientY - joystickOriginY;
         const dist = Math.hypot(dx, dy);
 
-        // Clamp knob to circle edge
         if (dist > JOYSTICK_RADIUS) {
             dx = (dx / dist) * JOYSTICK_RADIUS;
             dy = (dy / dist) * JOYSTICK_RADIUS;
         }
 
-        // Move knob visually
-        joystickKnob.style.transform =
-            `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        joystickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
 
-        // Fire direction keys
         fireKey('KeyW', 'w', dy < -KNOB_DEADZONE);
         fireKey('KeyS', 's', dy >  KNOB_DEADZONE);
         fireKey('KeyA', 'a', dx < -KNOB_DEADZONE);
@@ -689,34 +651,32 @@ frameborder="1"
         joystickActive = false;
         joystickTouchId = null;
         joystickKnob.style.transform = 'translate(-50%, -50%)';
-        ['KeyW','KeyS','KeyA','KeyD'].forEach(c => {
-            const k = c.replace('Key','').toLowerCase();
-            fireKey(c, k, false);
-        });
-        // Release sprint too when joystick lifts
+        ['KeyW','KeyS','KeyA','KeyD'].forEach(c => fireKey(c, c.replace('Key','').toLowerCase(), false));
         fireKey('ShiftLeft', 'Shift', false);
     }
 
-    joystickZone.addEventListener('touchstart', e => {
-        e.preventDefault();
-        const t = e.changedTouches[0];
-        joystickStart(t.clientX, t.clientY, t.identifier);
-    }, { passive: false });
+    if (joystickZone) {
+        joystickZone.addEventListener('touchstart', e => {
+            e.preventDefault();
+            const t = e.changedTouches[0];
+            joystickStart(t.clientX, t.clientY, t.identifier);
+        }, { passive: false });
 
-    joystickZone.addEventListener('touchmove', e => {
-        e.preventDefault();
-        for (const t of e.changedTouches) {
-            if (t.identifier === joystickTouchId) {
-                joystickMove(t.clientX, t.clientY);
+        joystickZone.addEventListener('touchmove', e => {
+            e.preventDefault();
+            for (const t of e.changedTouches) {
+                if (t.identifier === joystickTouchId) {
+                    joystickMove(t.clientX, t.clientY);
+                }
             }
-        }
-    }, { passive: false });
+        }, { passive: false });
 
-    joystickZone.addEventListener('touchend',    e => { e.preventDefault(); joystickEnd(); }, { passive: false });
-    joystickZone.addEventListener('touchcancel', e => { e.preventDefault(); joystickEnd(); }, { passive: false });
+        joystickZone.addEventListener('touchend', e => { e.preventDefault(); joystickEnd(); }, { passive: false });
+        joystickZone.addEventListener('touchcancel', e => { e.preventDefault(); joystickEnd(); }, { passive: false });
+    }
 
-    // ── ACTION BUTTONS ───────────────────────────────────────────────
-    function bindButton(id, keyCode, keyChar, holdable) {
+    // Action Buttons
+    function bindButton(id, keyCode, keyChar) {
         const btn = document.getElementById(id);
         if (!btn) return;
 
@@ -743,16 +703,11 @@ frameborder="1"
         }, { passive: false });
     }
 
-    // Sprint — Left Shift (P1)
-    bindButton('btn-sprint', 'ShiftLeft', 'Shift', true);
+    bindButton('btn-sprint', 'ShiftLeft', 'Shift');
+    bindButton('btn-pass', 'KeyF', 'f');
+    bindButton('btn-shoot', 'KeyG', 'g');
+    bindButton('btn-start', 'Enter', 'Enter');
 
-    // Pass / Switch — F key
-    bindButton('btn-pass', 'KeyF', 'f', false);
-
-    // Shoot — G key (hold to charge, release to shoot)
-    bindButton('btn-shoot', 'KeyG', 'g', true);
-
-    // ESC/Menu button
     const btnMenu = document.getElementById('btn-menu');
     if (btnMenu) {
         btnMenu.addEventListener('touchstart', e => {
@@ -762,19 +717,15 @@ frameborder="1"
         }, { passive: false });
     }
 
-    // ── PREVENT SCROLL / ZOOM on game area ──────────────────────────
+    // Prevent default touch scrolls & enable full touch experience
     document.addEventListener('touchmove', e => {
         if (e.target.closest('#gamepad') || e.target.closest('canvas')) {
             e.preventDefault();
         }
     }, { passive: false });
 
-    document.addEventListener('gesturestart',  e => e.preventDefault(), { passive: false });
-    document.addEventListener('gesturechange', e => e.preventDefault(), { passive: false });
-
-    console.log('[Gamepad] Mobile virtual gamepad ready ✅');
+    console.log('[Mobile UI] Gamepad, Fullscreen, and Touch menu controller initialized ✅');
     </script>
 
 </body>
 </html>
-
