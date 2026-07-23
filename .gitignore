@@ -1,5 +1,8 @@
 # Python cache files
 __pycache__/
+
+# pygbag build output
+build/
 *.py[cod]
 *$py.class
 

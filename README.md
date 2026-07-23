@@ -11,6 +11,8 @@
 **A retro-styled, feature-rich 2D football game built with Python & Pygame.**  
 Inspired by the raw intensity of *Blue Lock* — a vintage 5v5 experience dripping in 1970s football aesthetics.
 
+### 🌐 [▶ Play Live in Browser](https://adarsh0718.github.io/Blue-Lock-Football/) &nbsp;&nbsp; [📂 View Source Code](https://github.com/adarsh0718/Blue-Lock-Football)
+
 [🎮 Getting Started](#-installation) · [🕹️ Controls](#%EF%B8%8F-controls) · [🌦️ Weather Modes](#%EF%B8%8F-weather-system) · [🧠 AI System](#-ai-system) · [📂 Project Structure](#-project-structure)
 
 </div>
