@@ -10,7 +10,7 @@
 **A modern, premium AI-powered chatbot assistant for the Blue Lock Football simulation codebase.**  
 Featuring web search fallbacks, Gemini API integration, and self-healing configurations.
 
-### 🌐 **[Click Here for the Active Live App Demo](https://sraadaly-966730172656.asia-southeast1.run.app/)**
+### 🌐 **[Click Here for the Active Live App Demo](https://noteflow-966730172656.asia-southeast1.run.app/)**
 
 </div>
 
@@ -26,7 +26,7 @@ Built using **Flask** (backend) and a sleek **Glassmorphism Dark-Space** themed 
 
 ## 🚀 Active Live Link
 You can test the application live in production here:
-👉 **[https://sraadaly-966730172656.asia-southeast1.run.app/](https://sraadaly-966730172656.asia-southeast1.run.app/)**
+👉 **[https://noteflow-966730172656.asia-southeast1.run.app/](https://noteflow-966730172656.asia-southeast1.run.app/)**
 
 ---
 

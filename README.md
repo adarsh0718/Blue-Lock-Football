@@ -12,7 +12,7 @@
 **A retro-styled, physics-driven 2D football simulation built with Python & Pygame, integrated with an AI-powered Codebase Search Chatbot.**  
 Inspired by the raw intensity of *Blue Lock* — a vintage 5v5 experience dripping in 1970s football aesthetics combined with modern search tech.
 
-### 🌐 [▶ Open Live Chatbot App](https://sraadaly-966730172656.asia-southeast1.run.app/) &nbsp;&nbsp; [📂 View Code](https://github.com/adarsh0718/Blue-Lock-Football)
+### 🌐 [▶ Open Live Chatbot App](https://noteflow-966730172656.asia-southeast1.run.app/) &nbsp;&nbsp; [📂 View Code](https://github.com/adarsh0718/Blue-Lock-Football)
 
 </div>
 
