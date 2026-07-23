@@ -236,20 +236,16 @@ class GameEngine:
                     mx, my = event.pos
                     for i in range(5):
                         item_y = 230 + i * 50
-                        if item_y - 20 <= my <= item_y + 25:
-                            if self.menu_selection == i:
-                                if i == 0:
-                                    self.mode = 'TWO_PLAYER' if self.mode == 'VS_COMPUTER' else 'VS_COMPUTER'
-                                elif i == 1:
-                                    weathers = ['SUNNY', 'EVENING', 'RAINING', 'NIGHT']
-                                    idx = (weathers.index(self.weather) + 1) % len(weathers)
-                                    self.weather = weathers[idx]
-                                else:
-                                    self.select_menu_option()
+                        if item_y - 25 <= my <= item_y + 25:
+                            self.menu_selection = i
+                            if i == 0:
+                                self.mode = 'TWO_PLAYER' if self.mode == 'VS_COMPUTER' else 'VS_COMPUTER'
+                            elif i == 1:
+                                weathers = ['SUNNY', 'EVENING', 'RAINING', 'NIGHT']
+                                idx = (weathers.index(self.weather) + 1) % len(weathers)
+                                self.weather = weathers[idx]
                             else:
-                                self.menu_selection = i
-                                if i in [2, 3, 4]:
-                                    self.select_menu_option()
+                                self.select_menu_option()
                             break
 
                 if event.type == pygame.KEYDOWN:
