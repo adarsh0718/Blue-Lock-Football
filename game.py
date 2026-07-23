@@ -232,6 +232,26 @@ class GameEngine:
                 sys.exit()
                 
             if self.state == 'MENU':
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    mx, my = event.pos
+                    for i in range(5):
+                        item_y = 230 + i * 50
+                        if item_y - 20 <= my <= item_y + 25:
+                            if self.menu_selection == i:
+                                if i == 0:
+                                    self.mode = 'TWO_PLAYER' if self.mode == 'VS_COMPUTER' else 'VS_COMPUTER'
+                                elif i == 1:
+                                    weathers = ['SUNNY', 'EVENING', 'RAINING', 'NIGHT']
+                                    idx = (weathers.index(self.weather) + 1) % len(weathers)
+                                    self.weather = weathers[idx]
+                                else:
+                                    self.select_menu_option()
+                            else:
+                                self.menu_selection = i
+                                if i in [2, 3, 4]:
+                                    self.select_menu_option()
+                            break
+
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP or event.key == pygame.K_w:
                         self.menu_selection = (self.menu_selection - 1) % 5
@@ -256,7 +276,9 @@ class GameEngine:
                         self.select_menu_option()
                         
             elif self.state == 'CONTROLS':
-                if event.type == pygame.KEYDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    self.state = 'MENU'
+                elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE or event.key == pygame.K_RETURN:
                         self.state = 'MENU'
                         
@@ -310,7 +332,9 @@ class GameEngine:
                             self.p2_charge = 0.0
 
             elif self.state == 'GAME_OVER':
-                if event.type == pygame.KEYDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    self.start_new_match()
+                elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_RETURN:
                         self.start_new_match()
                     elif event.key == pygame.K_ESCAPE:
