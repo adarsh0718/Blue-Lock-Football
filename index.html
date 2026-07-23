@@ -274,112 +274,171 @@ function show_infobox() {
            border: 1px solid black;
         }
 
-        /* ── MOBILE VIRTUAL GAMEPAD & FULLSCREEN OVERLAY ── */
-        #gamepad {
-            display: none;
+        /* ── MOBILE CONTROLS & FULLSCREEN OVERLAY ── */
+        #gamepad-container {
+            display: flex;
             position: fixed;
             bottom: 0; left: 0; right: 0;
-            height: 180px;
-            z-index: 9999;
+            height: 210px;
+            z-index: 999999;
             pointer-events: none;
             user-select: none;
             -webkit-user-select: none;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 8px 12px;
+            box-sizing: border-box;
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%);
         }
 
-        @media (hover: none) and (pointer: coarse), (max-width: 900px) {
-            #gamepad { display: flex; justify-content: space-between; align-items: flex-end; padding: 10px 16px; }
-            #btn-fullscreen { display: flex !important; }
-            #btn-menu { display: flex !important; }
+        /* Top control bar */
+        #top-bar {
+            position: fixed;
+            top: 6px; right: 6px;
+            display: flex;
+            gap: 8px;
+            z-index: 999999;
         }
+        .top-btn {
+            height: 36px;
+            padding: 0 12px;
+            border-radius: 6px;
+            background: rgba(10, 10, 10, 0.85);
+            border: 1.5px solid rgba(255, 215, 0, 0.7);
+            color: #ffd700;
+            font-size: 11px;
+            font-weight: bold;
+            font-family: Georgia, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+            touch-action: manipulation;
+        }
+        .top-btn:active { background: rgba(255,215,0,0.3); transform: scale(0.95); }
 
-        /* Joystick */
-        #joystick-zone {
+        /* Left Zone: Joystick + D-Pad */
+        #left-control-zone {
             pointer-events: all;
             position: relative;
-            width: 130px;
-            height: 130px;
+            width: 150px;
+            height: 150px;
             flex-shrink: 0;
         }
         #joystick-base {
-            width: 130px;
-            height: 130px;
+            width: 140px;
+            height: 140px;
             border-radius: 50%;
-            background: rgba(255,255,255,0.15);
-            border: 2px solid rgba(255,255,255,0.4);
+            background: rgba(20, 20, 30, 0.55);
+            border: 2px solid rgba(255, 255, 255, 0.4);
             position: absolute;
-            top: 0; left: 0;
+            top: 5px; left: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-        #joystick-base::before { content: '▲'; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.6); font-size: 14px; }
-        #joystick-base::after { content: '▼'; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.6); font-size: 14px; }
         #joystick-knob {
-            width: 50px;
-            height: 50px;
+            width: 52px;
+            height: 52px;
             border-radius: 50%;
-            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.95), rgba(200,200,200,0.7));
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            background: radial-gradient(circle at 35% 35%, #ffffff, #aaaaaa);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.7);
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
+            pointer-events: none;
         }
 
-        /* Action Buttons */
-        #action-zone {
+        /* D-Pad Buttons Overlay on Left */
+        .dpad-btn {
+            position: absolute;
+            width: 38px;
+            height: 38px;
+            background: rgba(40, 40, 50, 0.75);
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            pointer-events: all;
+        }
+        .dpad-btn:active { background: rgba(255, 215, 0, 0.6); transform: scale(0.92); }
+        #dpad-up    { top: -12px; left: 56px; }
+        #dpad-down  { bottom: -12px; left: 56px; }
+        #dpad-left  { top: 56px; left: -12px; }
+        #dpad-right { top: 56px; right: -12px; }
+
+        /* Right Zone: Action & Menu Select Buttons */
+        #right-control-zone {
             pointer-events: all;
             position: relative;
-            width: 170px;
-            height: 130px;
+            width: 190px;
+            height: 160px;
             flex-shrink: 0;
         }
         .gp-btn {
             position: absolute;
             border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.4);
+            border: 2px solid rgba(255, 255, 255, 0.5);
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: bold;
-            font-family: Georgia, serif;
-            color: #fff;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            font-family: Georgia, sans-serif;
+            color: #ffffff;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.9);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
             cursor: pointer;
             touch-action: none;
             -webkit-tap-highlight-color: transparent;
             text-align: center;
+            line-height: 1.1;
         }
-        #btn-sprint { background: radial-gradient(circle at 35% 35%, #4a9eff, #1a4a8f); width: 48px; height: 48px; bottom: 0; left: 0; }
-        #btn-pass { background: radial-gradient(circle at 35% 35%, #f0c040, #a07010); width: 48px; height: 48px; top: 0; left: 35px; }
-        #btn-shoot { background: radial-gradient(circle at 35% 35%, #ff6040, #8f1a1a); width: 56px; height: 56px; top: 35px; right: 0; font-size: 11px; }
-        #btn-start { background: radial-gradient(circle at 35% 35%, #2ecc71, #1e8449); width: 50px; height: 50px; bottom: 0; left: 58px; font-size: 10px; }
+        .gp-btn:active { transform: scale(0.9); filter: brightness(1.2); }
 
-        /* Top control buttons */
-        .top-btn {
-            position: fixed;
-            top: 10px;
-            height: 38px;
-            border-radius: 8px;
-            background: rgba(0,0,0,0.65);
-            border: 1px solid rgba(255,255,255,0.4);
-            color: #fff;
+        /* Button Positions & Gradients */
+        #btn-select {
+            background: radial-gradient(circle at 35% 35%, #2ecc71, #117a37);
+            width: 58px; height: 58px;
+            bottom: 5px; left: 66px;
+            font-size: 10px;
+            border-color: #7dffb2;
+            z-index: 10;
+        }
+        #btn-change {
+            background: radial-gradient(circle at 35% 35%, #f39c12, #965b00);
+            width: 46px; height: 46px;
+            top: 5px; left: 10px;
+            font-size: 8px;
+        }
+        #btn-sprint {
+            background: radial-gradient(circle at 35% 35%, #3498db, #1a4a8f);
+            width: 48px; height: 48px;
+            bottom: 5px; left: 5px;
+        }
+        #btn-pass {
+            background: radial-gradient(circle at 35% 35%, #9b59b6, #5b2c6f);
+            width: 48px; height: 48px;
+            top: 5px; left: 70px;
+        }
+        #btn-shoot {
+            background: radial-gradient(circle at 35% 35%, #e74c3c, #922b21);
+            width: 60px; height: 60px;
+            top: 35px; right: 0;
             font-size: 11px;
-            font-family: Georgia, serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 12px;
-            z-index: 10000;
-            pointer-events: all;
-            cursor: pointer;
-            backdrop-filter: blur(4px);
         }
-        #btn-fullscreen { right: 10px; }
-        #btn-menu { right: 115px; }
 
-        @media (hover: none) and (pointer: coarse), (max-width: 900px) {
+        /* Resize game canvas to fit above gamepad on small screens */
+        @media (max-width: 900px), (hover: none) and (pointer: coarse) {
             canvas.emscripten {
-                height: calc(100% - 180px) !important;
-                bottom: 180px !important;
+                height: calc(100% - 190px) !important;
+                bottom: 190px !important;
             }
         }
     </style>
@@ -541,36 +600,41 @@ frameborder="1"
         window.frames["iframe"].location = url;
     }
 
-    <!-- ── TOP MOBILE CONTROLS ── -->
-    <div class="top-btn" id="btn-fullscreen" onclick="toggleFullscreen()">⛶ FULLSCREEN</div>
-    <div class="top-btn" id="btn-menu">☰ MENU</div>
+    <!-- ── TOP BAR CONTROLS ── -->
+    <div id="top-bar">
+        <div class="top-btn" id="btn-fullscreen" onclick="toggleFullscreen()">⛶ FULLSCREEN</div>
+        <div class="top-btn" id="btn-esc">☰ ESC / MENU</div>
+    </div>
 
-    <!-- ── MOBILE VIRTUAL GAMEPAD HTML ── -->
-    <div id="gamepad">
-        <div id="joystick-zone">
+    <!-- ── MOBILE GAMEPAD OVERLAY ── -->
+    <div id="gamepad-container">
+        <!-- Left Zone: Joystick + D-Pad -->
+        <div id="left-control-zone">
             <div id="joystick-base">
                 <div id="joystick-knob"></div>
             </div>
+            <!-- Touch D-Pad buttons -->
+            <div class="dpad-btn" id="dpad-up">▲</div>
+            <div class="dpad-btn" id="dpad-down">▼</div>
+            <div class="dpad-btn" id="dpad-left">◀</div>
+            <div class="dpad-btn" id="dpad-right">▶</div>
         </div>
 
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:8px;pointer-events:none;">
-            <span style="color:rgba(255,255,255,0.4);font-size:9px;font-family:Georgia,serif;letter-spacing:1px;">BLUE LOCK</span>
-        </div>
-
-        <div id="action-zone">
-            <div class="gp-btn" id="btn-sprint">⚡<br>SPRINT</div>
+        <!-- Right Zone: Action & Menu Select Buttons -->
+        <div id="right-control-zone">
+            <div class="gp-btn" id="btn-change">🔄<br>CHANGE</div>
             <div class="gp-btn" id="btn-pass">🎯<br>PASS</div>
-            <div class="gp-btn" id="btn-start">▶<br>START</div>
+            <div class="gp-btn" id="btn-sprint">⚡<br>SPRINT</div>
+            <div class="gp-btn" id="btn-select">✅<br>SELECT</div>
             <div class="gp-btn" id="btn-shoot">🔥<br>SHOOT</div>
         </div>
     </div>
 
     <script type="application/javascript">
     // ═══════════════════════════════════════════════════════════════
-    //  MOBILE GAMEPAD & FULLSCREEN CONTROLLER
+    //  MOBILE CONTROLLER & EMSCRIPTEN KEYBOARD EVENT DISPATCHER
     // ═══════════════════════════════════════════════════════════════
 
-    // Fullscreen API toggle
     function toggleFullscreen() {
         const doc = document.documentElement;
         if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
@@ -595,42 +659,134 @@ frameborder="1"
 
         if (down) heldKeys.add(code); else heldKeys.delete(code);
 
-        const canvas = document.getElementById('canvas');
-        const target = canvas || document.body;
+        // Map key codes for Emscripten SDL2
+        let keyCodeVal = 0;
+        if (code === 'KeyW' || code === 'ArrowUp') keyCodeVal = 87; // W / UP
+        else if (code === 'KeyS' || code === 'ArrowDown') keyCodeVal = 83; // S / DOWN
+        else if (code === 'KeyA' || code === 'ArrowLeft') keyCodeVal = 65; // A / LEFT
+        else if (code === 'KeyD' || code === 'ArrowRight') keyCodeVal = 68; // D / RIGHT
+        else if (code === 'Enter') keyCodeVal = 13;
+        else if (code === 'Escape') keyCodeVal = 27;
+        else if (code === 'KeyF') keyCodeVal = 70;
+        else if (code === 'KeyG') keyCodeVal = 71;
+        else if (code === 'ShiftLeft') keyCodeVal = 16;
 
-        const evt = new KeyboardEvent(type, {
-            bubbles: true, cancelable: true,
-            key: key, code: code,
-            keyCode: 0, which: 0
-        });
-        target.dispatchEvent(evt);
+        const opts = {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            key: key,
+            code: code,
+            keyCode: keyCodeVal,
+            which: keyCodeVal,
+            charCode: keyCodeVal
+        };
+
+        const evt1 = new KeyboardEvent(type, opts);
+        window.dispatchEvent(evt1);
+        const evt2 = new KeyboardEvent(type, opts);
+        document.dispatchEvent(evt2);
+
+        const canvas = document.getElementById('canvas');
+        if (canvas) {
+            const evt3 = new KeyboardEvent(type, opts);
+            canvas.dispatchEvent(evt3);
+        }
     }
 
-    // Joystick
-    const joystickZone = document.getElementById('joystick-zone');
+    // Bind touch button
+    function bindTouchBtn(elementId, code, keyName, isHoldable) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+
+        const startHandler = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            fireKey(code, keyName, true);
+            if (!isHoldable) {
+                setTimeout(() => fireKey(code, keyName, false), 120);
+            }
+        };
+
+        const endHandler = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (isHoldable) {
+                fireKey(code, keyName, false);
+            }
+        };
+
+        el.addEventListener('touchstart', startHandler, { passive: false });
+        el.addEventListener('touchend', endHandler, { passive: false });
+        el.addEventListener('touchcancel', endHandler, { passive: false });
+        el.addEventListener('mousedown', startHandler);
+        el.addEventListener('mouseup', endHandler);
+    }
+
+    // D-Pad Bindings
+    bindTouchBtn('dpad-up',    'KeyW', 'w', true);
+    bindTouchBtn('dpad-down',  'KeyS', 's', true);
+    bindTouchBtn('dpad-left',  'KeyA', 'a', true);
+    bindTouchBtn('dpad-right', 'KeyD', 'd', true);
+
+    // Action & Option Bindings
+    bindTouchBtn('btn-select', 'Enter', 'Enter', false);
+    bindTouchBtn('btn-change', 'KeyD',  'd',     false);
+    bindTouchBtn('btn-sprint', 'ShiftLeft', 'Shift', true);
+    bindTouchBtn('btn-pass',   'KeyF',  'f',     false);
+    bindTouchBtn('btn-shoot',  'KeyG',  'g',     true);
+    bindTouchBtn('btn-esc',    'Escape','Escape',false);
+
+    // Analog Joystick Controller
     const joystickBase = document.getElementById('joystick-base');
     const joystickKnob = document.getElementById('joystick-knob');
-
-    const JOYSTICK_RADIUS = 65;
-    const KNOB_DEADZONE   = 16;
+    const JOYSTICK_RADIUS = 70;
+    const DEADZONE = 18;
     let joystickActive = false;
-    let joystickOriginX = 0, joystickOriginY = 0;
-    let joystickTouchId = null;
+    let touchId = null;
+    let originX = 0, originY = 0;
 
-    function joystickStart(clientX, clientY, touchId) {
-        joystickActive = true;
-        joystickTouchId = touchId;
-        const rect = joystickBase.getBoundingClientRect();
-        joystickOriginX = rect.left + JOYSTICK_RADIUS;
-        joystickOriginY = rect.top  + JOYSTICK_RADIUS;
-        joystickMove(clientX, clientY);
+    if (joystickBase) {
+        joystickBase.addEventListener('touchstart', e => {
+            e.preventDefault();
+            const t = e.changedTouches[0];
+            joystickActive = true;
+            touchId = t.identifier;
+            const rect = joystickBase.getBoundingClientRect();
+            originX = rect.left + JOYSTICK_RADIUS;
+            originY = rect.top + JOYSTICK_RADIUS;
+            updateJoystick(t.clientX, t.clientY);
+        }, { passive: false });
+
+        window.addEventListener('touchmove', e => {
+            if (!joystickActive) return;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const t = e.changedTouches[i];
+                if (t.identifier === touchId) {
+                    updateJoystick(t.clientX, t.clientY);
+                    break;
+                }
+            }
+        }, { passive: false });
+
+        const endJoystick = e => {
+            if (!joystickActive) return;
+            joystickActive = false;
+            touchId = null;
+            if (joystickKnob) joystickKnob.style.transform = 'translate(-50%, -50%)';
+            fireKey('KeyW', 'w', false);
+            fireKey('KeyS', 's', false);
+            fireKey('KeyA', 'a', false);
+            fireKey('KeyD', 'd', false);
+        };
+
+        window.addEventListener('touchend', endJoystick, { passive: false });
+        window.addEventListener('touchcancel', endJoystick, { passive: false });
     }
 
-    function joystickMove(clientX, clientY) {
-        if (!joystickActive) return;
-
-        let dx = clientX - joystickOriginX;
-        let dy = clientY - joystickOriginY;
+    function updateJoystick(cx, cy) {
+        let dx = cx - originX;
+        let dy = cy - originY;
         const dist = Math.hypot(dx, dy);
 
         if (dist > JOYSTICK_RADIUS) {
@@ -638,94 +794,27 @@ frameborder="1"
             dy = (dy / dist) * JOYSTICK_RADIUS;
         }
 
-        joystickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-
-        fireKey('KeyW', 'w', dy < -KNOB_DEADZONE);
-        fireKey('KeyS', 's', dy >  KNOB_DEADZONE);
-        fireKey('KeyA', 'a', dx < -KNOB_DEADZONE);
-        fireKey('KeyD', 'd', dx >  KNOB_DEADZONE);
-    }
-
-    function joystickEnd() {
-        if (!joystickActive) return;
-        joystickActive = false;
-        joystickTouchId = null;
-        joystickKnob.style.transform = 'translate(-50%, -50%)';
-        ['KeyW','KeyS','KeyA','KeyD'].forEach(c => fireKey(c, c.replace('Key','').toLowerCase(), false));
-        fireKey('ShiftLeft', 'Shift', false);
-    }
-
-    if (joystickZone) {
-        joystickZone.addEventListener('touchstart', e => {
-            e.preventDefault();
-            const t = e.changedTouches[0];
-            joystickStart(t.clientX, t.clientY, t.identifier);
-        }, { passive: false });
-
-        joystickZone.addEventListener('touchmove', e => {
-            e.preventDefault();
-            for (const t of e.changedTouches) {
-                if (t.identifier === joystickTouchId) {
-                    joystickMove(t.clientX, t.clientY);
-                }
-            }
-        }, { passive: false });
-
-        joystickZone.addEventListener('touchend', e => { e.preventDefault(); joystickEnd(); }, { passive: false });
-        joystickZone.addEventListener('touchcancel', e => { e.preventDefault(); joystickEnd(); }, { passive: false });
-    }
-
-    // Action Buttons
-    function bindButton(id, keyCode, keyChar) {
-        const btn = document.getElementById(id);
-        if (!btn) return;
-
-        btn.addEventListener('touchstart', e => {
-            e.preventDefault();
-            e.stopPropagation();
-            btn.style.opacity = '0.65';
-            btn.style.transform = 'scale(0.92)';
-            fireKey(keyCode, keyChar, true);
-        }, { passive: false });
-
-        btn.addEventListener('touchend', e => {
-            e.preventDefault();
-            e.stopPropagation();
-            btn.style.opacity = '1';
-            btn.style.transform = 'scale(1)';
-            fireKey(keyCode, keyChar, false);
-        }, { passive: false });
-
-        btn.addEventListener('touchcancel', e => {
-            btn.style.opacity = '1';
-            btn.style.transform = 'scale(1)';
-            fireKey(keyCode, keyChar, false);
-        }, { passive: false });
-    }
-
-    bindButton('btn-sprint', 'ShiftLeft', 'Shift');
-    bindButton('btn-pass', 'KeyF', 'f');
-    bindButton('btn-shoot', 'KeyG', 'g');
-    bindButton('btn-start', 'Enter', 'Enter');
-
-    const btnMenu = document.getElementById('btn-menu');
-    if (btnMenu) {
-        btnMenu.addEventListener('touchstart', e => {
-            e.preventDefault();
-            fireKey('Escape', 'Escape', true);
-            setTimeout(() => fireKey('Escape', 'Escape', false), 80);
-        }, { passive: false });
-    }
-
-    // Prevent default touch scrolls & enable full touch experience
-    document.addEventListener('touchmove', e => {
-        if (e.target.closest('#gamepad') || e.target.closest('canvas')) {
-            e.preventDefault();
+        if (joystickKnob) {
+            joystickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
         }
-    }, { passive: false });
 
-    console.log('[Mobile UI] Gamepad, Fullscreen, and Touch menu controller initialized ✅');
+        fireKey('KeyW', 'w', dy < -DEADZONE);
+        fireKey('KeyS', 's', dy >  DEADZONE);
+        fireKey('KeyA', 'a', dx < -DEADZONE);
+        fireKey('KeyD', 'd', dx >  DEADZONE);
+    }
+
+    // Auto-request fullscreen on first canvas tap on mobile
+    const canvasEl = document.getElementById('canvas');
+    if (canvasEl) {
+        canvasEl.addEventListener('touchstart', () => {
+            if (window.innerWidth < 800 && !document.fullscreenElement) {
+                toggleFullscreen();
+            }
+        }, { once: true, passive: true });
+    }
+
+    console.log('[Mobile Gamepad] Initialized: D-Pad, Joystick, Select/Change, Fullscreen ✅');
     </script>
-
 </body>
 </html>
