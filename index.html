@@ -62,20 +62,8 @@ async def custom_site():
     # TODO: test for window.webkitAudioContext and block aio loop until gesture if accessing media manager play
     # before a gesture is recorded ( touch or click )
 
-    # test/wait user media interaction
-    if not platform.window.MM.UME:
-
-        # now that apk is mounted we have access to font cache
-        # but we need to fill __file__ that is not yet set
-        __import__(__name__).__file__ = main
-
-        # now make a prompt
-        msg  = "Ready to start ! Please click/touch page"
-        platform.window.infobox.innerText = msg
-        print("\n"*4, f"    * Waiting for media user engagement. {msg} *" , "\n"*4)
-
-        while not platform.window.MM.UME:
-            await asyncio.sleep(.1)
+    # Force user media engagement to True so game starts immediately on mobile
+    platform.window.MM.UME = True
 
     # start async top level machinery if not started and add a console in any case if requested.
     await TopLevel_async_handler.start_toplevel(platform.shell, console=window.python.config.debug)
@@ -94,6 +82,7 @@ async def custom_site():
     # your main.py has an infinite sync loop somewhere !
 
     platform.window.infobox.style.display = "none"
+    platform.window.pyconsole.style.display = "none"
     platform.window.config.gui_divider = 0
     platform.window.window_resize()
     print("default.tmpl: done")
@@ -369,61 +358,252 @@ frameborder="1"
     }
 
     async function custom_onload(debug_hidden) {
-        // this is called before anything python is loaded
-        // make your js customization here
-        console.log(__FILE__, "custom_onload")
-
-        pyconsole.hidden = debug_hidden
-        system.hidden = debug_hidden
-        transfer.hidden = debug_hidden
-        info.hidden = debug_hidden
-        box.hidden =  debug_hidden
-
-        show_infobox()
+        if (document.getElementById("pyconsole")) document.getElementById("pyconsole").style.display = "none";
+        if (document.getElementById("system")) document.getElementById("system").style.display = "none";
+        if (document.getElementById("transfer")) document.getElementById("transfer").style.display = "none";
+        if (document.getElementById("box")) document.getElementById("box").style.display = "none";
+        show_infobox();
     }
 
-    function custom_prerun(){
-        // no python main and no (MEMFS + VFS) yet.
-        console.log(__FILE__, "custom_prerun")
+    function custom_prerun(){ }
+    function custom_postrun(){ }
 
-    }
-
-    function custom_postrun(){
-        // python main and no VFS filesystem yet.
-        console.log(__FILE__, "custom_postrun")
-
-    }
-
-    function debug() {
-        // allow to gain access to dev tools from js console
-        // but only on desktop. difficult to reach when in iframe
-        python.config.debug = true
-        custom_onload(false)
-        Module.PyRun_SimpleString("shell.uptime()")
-        window_resize()
-    }
-
-    function info_inline(data){
-        document.getElementById("info").innerHTML = data
-    }
-
-    function info_online(url) {
-        // display info about current APK
-        fetch( url /*, options */)
-            .then((response) => response.text())
-            .then((html) => {
-                info_inline(html);
-        })
-        .catch((error) => {
-            console.warn(error);
-        });
-    }
-
-    function frame_online(url) {
-        window.frames["iframe"].location = url;
-    }
-
+    function info_inline(data){ }
+    function info_online(url) { }
+    function frame_online(url) { }
     </script>
 
+    <!-- ── TOP BAR CONTROLS ── -->
+    <div id="top-bar">
+        <div class="top-btn" id="btn-fullscreen" onclick="toggleFullscreen()">⛶ FULLSCREEN</div>
+        <div class="top-btn" id="btn-esc">☰ ESC / MENU</div>
+    </div>
+
+    <!-- ── MOBILE GAMEPAD OVERLAY ── -->
+    <div id="gamepad-container">
+        <!-- Left Zone: Joystick + D-Pad -->
+        <div id="left-control-zone">
+            <div id="joystick-base">
+                <div id="joystick-knob"></div>
+            </div>
+            <!-- Touch D-Pad buttons -->
+            <div class="dpad-btn" id="dpad-up">▲</div>
+            <div class="dpad-btn" id="dpad-down">▼</div>
+            <div class="dpad-btn" id="dpad-left">◀</div>
+            <div class="dpad-btn" id="dpad-right">▶</div>
+        </div>
+
+        <!-- Right Zone: Action & Menu Select Buttons -->
+        <div id="right-control-zone">
+            <div class="gp-btn" id="btn-change">🔄<br>CHANGE</div>
+            <div class="gp-btn" id="btn-pass">🎯<br>PASS</div>
+            <div class="gp-btn" id="btn-sprint">⚡<br>SPRINT</div>
+            <div class="gp-btn" id="btn-select">✅<br>SELECT</div>
+            <div class="gp-btn" id="btn-shoot">🔥<br>SHOOT</div>
+        </div>
+    </div>
+
+    <script type="application/javascript">
+    // ═══════════════════════════════════════════════════════════════
+    //  MOBILE CONTROLLER & EMSCRIPTEN KEYBOARD EVENT DISPATCHER
+    // ═══════════════════════════════════════════════════════════════
+
+    // Force user media engagement to true on page touch
+    window.addEventListener('pointerdown', () => {
+        if (window.MM) window.MM.UME = true;
+        const box = document.getElementById('infobox');
+        if (box) box.style.display = 'none';
+    }, { passive: true });
+
+    window.addEventListener('touchstart', () => {
+        if (window.MM) window.MM.UME = true;
+        const box = document.getElementById('infobox');
+        if (box) box.style.display = 'none';
+    }, { passive: true });
+
+    function toggleFullscreen() {
+        const doc = document.documentElement;
+        if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+            if (doc.requestFullscreen) { doc.requestFullscreen(); }
+            else if (doc.webkitRequestFullscreen) { doc.webkitRequestFullscreen(); }
+            else if (doc.mozRequestFullScreen) { doc.mozRequestFullScreen(); }
+            else if (doc.msRequestFullscreen) { doc.msRequestFullscreen(); }
+        } else {
+            if (document.exitFullscreen) { document.exitFullscreen(); }
+            else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+            else if (document.mozCancelFullScreen) { document.mozCancelFullScreen(); }
+            else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+        }
+    }
+
+    const heldKeys = new Set();
+
+    function fireKey(code, key, down) {
+        const type = down ? 'keydown' : 'keyup';
+        if (down && heldKeys.has(code)) return;
+        if (!down && !heldKeys.has(code)) return;
+
+        if (down) heldKeys.add(code); else heldKeys.delete(code);
+
+        // Map key codes for Emscripten SDL2
+        let keyCodeVal = 0;
+        if (code === 'KeyW' || code === 'ArrowUp') keyCodeVal = 87; // W / UP
+        else if (code === 'KeyS' || code === 'ArrowDown') keyCodeVal = 83; // S / DOWN
+        else if (code === 'KeyA' || code === 'ArrowLeft') keyCodeVal = 65; // A / LEFT
+        else if (code === 'KeyD' || code === 'ArrowRight') keyCodeVal = 68; // D / RIGHT
+        else if (code === 'Enter') keyCodeVal = 13;
+        else if (code === 'Escape') keyCodeVal = 27;
+        else if (code === 'KeyF') keyCodeVal = 70;
+        else if (code === 'KeyG') keyCodeVal = 71;
+        else if (code === 'ShiftLeft') keyCodeVal = 16;
+
+        const opts = {
+            bubbles: true,
+            cancelable: true,
+            view: window,
+            key: key,
+            code: code,
+            keyCode: keyCodeVal,
+            which: keyCodeVal,
+            charCode: keyCodeVal
+        };
+
+        const evt1 = new KeyboardEvent(type, opts);
+        window.dispatchEvent(evt1);
+        const evt2 = new KeyboardEvent(type, opts);
+        document.dispatchEvent(evt2);
+
+        const canvas = document.getElementById('canvas');
+        if (canvas) {
+            const evt3 = new KeyboardEvent(type, opts);
+            canvas.dispatchEvent(evt3);
+        }
+    }
+
+    // Bind touch button
+    function bindTouchBtn(elementId, code, keyName, isHoldable) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+
+        const startHandler = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (window.MM) window.MM.UME = true;
+            fireKey(code, keyName, true);
+            if (!isHoldable) {
+                setTimeout(() => fireKey(code, keyName, false), 120);
+            }
+        };
+
+        const endHandler = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (isHoldable) {
+                fireKey(code, keyName, false);
+            }
+        };
+
+        el.addEventListener('touchstart', startHandler, { passive: false });
+        el.addEventListener('touchend', endHandler, { passive: false });
+        el.addEventListener('touchcancel', endHandler, { passive: false });
+        el.addEventListener('mousedown', startHandler);
+        el.addEventListener('mouseup', endHandler);
+    }
+
+    // D-Pad Bindings
+    bindTouchBtn('dpad-up',    'KeyW', 'w', true);
+    bindTouchBtn('dpad-down',  'KeyS', 's', true);
+    bindTouchBtn('dpad-left',  'KeyA', 'a', true);
+    bindTouchBtn('dpad-right', 'KeyD', 'd', true);
+
+    // Action & Option Bindings
+    bindTouchBtn('btn-select', 'Enter', 'Enter', false);
+    bindTouchBtn('btn-change', 'KeyD',  'd',     false);
+    bindTouchBtn('btn-sprint', 'ShiftLeft', 'Shift', true);
+    bindTouchBtn('btn-pass',   'KeyF',  'f',     false);
+    bindTouchBtn('btn-shoot',  'KeyG',  'g',     true);
+    bindTouchBtn('btn-esc',    'Escape','Escape',false);
+
+    // Analog Joystick Controller
+    const joystickBase = document.getElementById('joystick-base');
+    const joystickKnob = document.getElementById('joystick-knob');
+    const JOYSTICK_RADIUS = 70;
+    const DEADZONE = 18;
+    let joystickActive = false;
+    let touchId = null;
+    let originX = 0, originY = 0;
+
+    if (joystickBase) {
+        joystickBase.addEventListener('touchstart', e => {
+            e.preventDefault();
+            if (window.MM) window.MM.UME = true;
+            const t = e.changedTouches[0];
+            joystickActive = true;
+            touchId = t.identifier;
+            const rect = joystickBase.getBoundingClientRect();
+            originX = rect.left + JOYSTICK_RADIUS;
+            originY = rect.top + JOYSTICK_RADIUS;
+            updateJoystick(t.clientX, t.clientY);
+        }, { passive: false });
+
+        window.addEventListener('touchmove', e => {
+            if (!joystickActive) return;
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                const t = e.changedTouches[i];
+                if (t.identifier === touchId) {
+                    updateJoystick(t.clientX, t.clientY);
+                    break;
+                }
+            }
+        }, { passive: false });
+
+        const endJoystick = e => {
+            if (!joystickActive) return;
+            joystickActive = false;
+            touchId = null;
+            if (joystickKnob) joystickKnob.style.transform = 'translate(-50%, -50%)';
+            fireKey('KeyW', 'w', false);
+            fireKey('KeyS', 's', false);
+            fireKey('KeyA', 'a', false);
+            fireKey('KeyD', 'd', false);
+        };
+
+        window.addEventListener('touchend', endJoystick, { passive: false });
+        window.addEventListener('touchcancel', endJoystick, { passive: false });
+    }
+
+    function updateJoystick(cx, cy) {
+        let dx = cx - originX;
+        let dy = cy - originY;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > JOYSTICK_RADIUS) {
+            dx = (dx / dist) * JOYSTICK_RADIUS;
+            dy = (dy / dist) * JOYSTICK_RADIUS;
+        }
+
+        if (joystickKnob) {
+            joystickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        }
+
+        fireKey('KeyW', 'w', dy < -DEADZONE);
+        fireKey('KeyS', 's', dy >  DEADZONE);
+        fireKey('KeyA', 'a', dx < -DEADZONE);
+        fireKey('KeyD', 'd', dx >  DEADZONE);
+    }
+
+    // Auto-request fullscreen on first canvas tap on mobile
+    const canvasEl = document.getElementById('canvas');
+    if (canvasEl) {
+        canvasEl.addEventListener('touchstart', () => {
+            if (window.MM) window.MM.UME = true;
+            if (window.innerWidth < 900 && !document.fullscreenElement) {
+                toggleFullscreen();
+            }
+        }, { once: true, passive: true });
+    }
+
+    console.log('[Mobile Gamepad] Fully initialized ✅');
+    </script>
 </body>
 </html>
